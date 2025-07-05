@@ -1,0 +1,210 @@
+using System.Collections;
+using System.Collections.Generic;
+using DG.Tweening;
+using UnityEngine;
+
+using UnityEngine.Diagnostics;
+
+public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObserver
+{
+    public Rigidbody2D myRigidBody;
+    
+    [SerializeField]private List<InvisibleWalls> _invisibleWalls;
+    [SerializeField] private float _crouchingJumpForce;
+    [SerializeField] private int _currentElevatorFloor;
+    [SerializeField] private float _crouchingSpeed;
+    [SerializeField] private float _baseJumpForce;
+    [SerializeField] private int _myCurrentFloor;
+    [SerializeField] private float _baseSpeed;
+    private string _tagElevator = "Elevator";
+    private string _tagFloor = "Floor";
+    private bool _isOnElevator = false;
+    public bool _canEnterDoor = false;
+    private bool _isCrouching = false;
+    private string _tagDoor = "Door";
+    private bool _isOnFloor = false;
+    private Vector3 _defaultScale;
+    public bool _inDoor = false;
+    private float _currentSpeed;
+    private Tween _currentTween;
+    private Door _currentDoor;
+    private float _jumpForce;
+
+    #region Observer
+    public void OnNotify(EventsEnum evt)
+    {
+        if(evt.Equals(EventsEnum.FIRST_FLOOR))
+        {
+            _currentElevatorFloor = 1;
+        }else if(evt.Equals(EventsEnum.SECOND_FLOOR))
+        {
+            _currentElevatorFloor = 2;
+        }else if(evt.Equals(EventsEnum.THIRD_FLOOR))
+        {
+            _currentElevatorFloor = 3;
+        }
+    }
+    #endregion
+
+    void Start()
+    {
+        myRigidBody = this.gameObject.GetComponent<Rigidbody2D>();
+        _defaultScale = this.gameObject.transform.localScale;
+        _currentElevatorFloor = 1;
+        _isCrouching = false;
+        _myCurrentFloor = 1;
+        _isOnFloor = false;
+    }
+
+    void FixedUpdate()
+    {
+        HandleMovement();
+    }
+
+    void Update()
+    {
+        HandleJump();
+        HandleActions();
+        HandleDoorBehaviour();
+        HandleInvisibleWallCollision();
+    }
+
+    private void HandleMovement()
+    {
+        if(_isCrouching){_currentSpeed = _crouchingSpeed;}
+        else{_currentSpeed = _baseSpeed;}
+
+        if(Input.GetKey(KeyCode.RightArrow) && !_inDoor)
+        {
+            myRigidBody.velocity = new Vector2(_currentSpeed, myRigidBody.velocity.y);
+        }else if(Input.GetKey(KeyCode.LeftArrow) && !_inDoor)
+        {
+            myRigidBody.velocity = new Vector2(-_currentSpeed, myRigidBody.velocity.y);
+        }
+        
+        if(Input.GetKeyUp(KeyCode.RightArrow) || Input.GetKeyUp(KeyCode.LeftArrow))
+        {
+            myRigidBody.velocity = Vector2.zero;
+        }
+    }
+
+    private void HandleJump()
+    {
+        if(_isCrouching){_jumpForce = _crouchingJumpForce;}
+        else{_jumpForce = _baseJumpForce;}
+
+        if((_isOnFloor || _isOnElevator) && Input.GetKeyDown(KeyCode.UpArrow) && !_inDoor)
+        {
+            myRigidBody.velocity = Vector2.up * _jumpForce;
+        }
+    }
+
+    private void HandleActions()
+    {
+        if(Input.GetKeyDown(KeyCode.DownArrow) && (_isOnFloor || _isOnElevator) && !_inDoor)
+        {
+            _currentTween?.Kill();
+            
+            if(!_isCrouching)
+            {
+                _currentTween = transform.DOScaleY(_defaultScale.y / 2, 0.1f);
+                _isCrouching = true;
+            }else{
+                _currentTween = transform.DOScaleY(_defaultScale.y, 0.1f);
+                _isCrouching = false;
+            }
+        }
+    }
+
+    private void HandleInvisibleWallCollision()
+    {
+        if(_currentElevatorFloor < _myCurrentFloor || _currentElevatorFloor > _myCurrentFloor + 1)
+        {
+            Debug.Log(_invisibleWalls.Count - _myCurrentFloor);
+            for(int i = 0; i <= _invisibleWalls.Count - _myCurrentFloor; i++)
+            {
+                //Debug.Log(_myCurrentFloor + i - 1);
+                Physics2D.IgnoreCollision(_invisibleWalls[_myCurrentFloor + i - 1].GetComponent<BoxCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>());
+            }
+        }
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if(collision.gameObject.CompareTag(_tagFloor))
+        {        
+            _isOnFloor = true;
+
+            CheckFloor(collision);
+        }else if(collision.gameObject.CompareTag(_tagElevator))
+        {
+            _myCurrentFloor = _currentElevatorFloor;
+            _isOnElevator = true;
+        }
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if(collision.gameObject.CompareTag(_tagFloor))
+        {
+            _isOnFloor = false;
+        }else if(collision.gameObject.CompareTag(_tagElevator))
+        {
+            _isOnElevator = false;
+        }
+    }
+
+    private void CheckFloor(Collision2D col)
+    {
+        if(Mathf.Abs(col.transform.parent.localPosition.y - 1.112f) < 0.01f)
+        {
+            _myCurrentFloor = 1;
+        }else if(Mathf.Abs(col.transform.parent.localPosition.y + 1.112f) < 0.01f)
+        {
+            _myCurrentFloor = 2;
+        }else if(Mathf.Abs(col.transform.parent.localPosition.y + 3.336f) < 0.01f)
+        {
+            _myCurrentFloor = 3;
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.CompareTag(_tagDoor))
+        {
+            _canEnterDoor = true;
+            _currentDoor = collision.gameObject.GetComponent<Door>();
+        }
+    }
+
+    private void HandleDoorBehaviour()
+    {
+        if(_currentDoor != null)
+        {
+            if(_canEnterDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
+            {
+                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -1;
+                _canEnterDoor = false;
+                _inDoor = true;
+            }else if(_inDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
+            {
+                _currentDoor.SetIsActive(false);
+
+                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
+                _inDoor = false;
+            }
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        if(collision.CompareTag(_tagDoor))
+        {
+            _canEnterDoor = true;
+
+            _currentDoor = null;
+        }
+    }
+
+    public int GetCurrentFloor(){return _myCurrentFloor;}
+}

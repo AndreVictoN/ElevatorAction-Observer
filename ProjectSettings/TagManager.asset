@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 2
   tags:
   - Floor
+  - Elevator
+  - FIRST_FLOOR
+  - SECOND_FLOOR
+  - THIRD_FLOOR
+  - Door
   layers:
   - Default
   - TransparentFX

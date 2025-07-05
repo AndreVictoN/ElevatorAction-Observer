@@ -12,13 +12,18 @@ public abstract class Subject : MonoBehaviour
         _subscribers.Add(observer);
     }
 
+    public void Subscribe(IObserver[] observers)
+    {
+        _subscribers.AddRange(observers);
+    }
+
     public void Unsubscribe(IObserver observer)
     {
         _subscribers.Remove(observer);
     }
 
-    public void Notify()
+    public void Notify(EventsEnum evt)
     {
-        _subscribers.ForEach((_observer) => {_observer.OnNotify();});
+        _subscribers.ForEach((_observer) => {_observer.OnNotify(evt);});
     }
 }
