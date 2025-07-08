@@ -13,7 +13,7 @@ public class Door : MonoBehaviour
 
     void Update()
     {
-        if(!_isActive) ChangeColor();
+        if (!_isActive) ChangeColor();
     }
 
     public void ChangeColor()
@@ -26,5 +26,9 @@ public class Door : MonoBehaviour
         _isActive = isDoorActive;
     }
 
-    public bool GetIsActive() {return _isActive;}
+    public bool GetIsActive() { return _isActive; }
+    public Vector3 GetPosition()
+    {
+        return transform.position;
+    }
 }
