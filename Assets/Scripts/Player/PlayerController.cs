@@ -32,18 +32,30 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     #region Observer
     public void OnNotify(EventsEnum evt)
+{
+    string name = evt.ToString();
+
+    int floor = name switch
     {
-        if(evt.Equals(EventsEnum.FIRST_FLOOR))
-        {
-            _currentElevatorFloor = 1;
-        }else if(evt.Equals(EventsEnum.SECOND_FLOOR))
-        {
-            _currentElevatorFloor = 2;
-        }else if(evt.Equals(EventsEnum.THIRD_FLOOR))
-        {
-            _currentElevatorFloor = 3;
-        }
-    }
+        "FIRST_FLOOR" => 1,
+        "SECOND_FLOOR" => 2,
+        "THIRD_FLOOR" => 3,
+        "FOURTH_FLOOR" => 4,
+        "FIFTH_FLOOR" => 5,
+        "SIXTH_FLOOR" => 6,
+        "SEVENTH_FLOOR" => 7,
+        "EIGHTH_FLOOR" => 8,
+        "NINTH_FLOOR" => 9,
+        "TENTH_FLOOR" => 10,
+        "ELEVENTH_FLOOR" => 11,
+        "TWELFTH_FLOOR" => 12,
+        "THIRTEENTH_FLOOR" => 13,
+        _ => _currentElevatorFloor
+    };
+
+    _currentElevatorFloor = floor;
+}
+
     #endregion
 
     void Start()
@@ -155,18 +167,52 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     }
 
     private void CheckFloor(Collision2D col)
+{
+    float y = col.transform.parent.localPosition.y;
+
+    switch (y)
     {
-        if(Mathf.Abs(col.transform.parent.localPosition.y - 1.112f) < 0.01f)
-        {
+        case float f when Mathf.Abs(f - 1.112f) < 0.01f:
             _myCurrentFloor = 1;
-        }else if(Mathf.Abs(col.transform.parent.localPosition.y + 1.112f) < 0.01f)
-        {
+            break;
+        case float f when Mathf.Abs(f + 1.112f) < 0.01f:
             _myCurrentFloor = 2;
-        }else if(Mathf.Abs(col.transform.parent.localPosition.y + 3.336f) < 0.01f)
-        {
+            break;
+        case float f when Mathf.Abs(f + 3.336f) < 0.01f:
             _myCurrentFloor = 3;
-        }
+            break;
+        case float f when Mathf.Abs(f + 5.336f) < 0.01f:
+            _myCurrentFloor = 4;
+            break;
+        case float f when Mathf.Abs(f + 7.336f) < 0.01f:
+            _myCurrentFloor = 5;
+            break;
+        case float f when Mathf.Abs(f + 9.336f) < 0.01f:
+            _myCurrentFloor = 6;
+            break;
+        case float f when Mathf.Abs(f + 11.336f) < 0.01f:
+            _myCurrentFloor = 7;
+            break;
+        case float f when Mathf.Abs(f + 13.336f) < 0.01f:
+            _myCurrentFloor = 8;
+            break;
+        case float f when Mathf.Abs(f + 15.336f) < 0.01f:
+            _myCurrentFloor = 9;
+            break;
+        case float f when Mathf.Abs(f + 17.336f) < 0.01f:
+            _myCurrentFloor = 10;
+            break;
+        case float f when Mathf.Abs(f + 19.336f) < 0.01f:
+            _myCurrentFloor = 11;
+            break;
+        case float f when Mathf.Abs(f + 21.336f) < 0.01f:
+            _myCurrentFloor = 12;
+            break;
+        case float f when Mathf.Abs(f + 23.336f) < 0.01f:
+            _myCurrentFloor = 13;
+            break;
     }
+}
 
     void OnTriggerEnter2D(Collider2D collision)
     {
