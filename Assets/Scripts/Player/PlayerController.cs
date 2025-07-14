@@ -29,32 +29,34 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     private Tween _currentTween;
     private Door _currentDoor;
     private float _jumpForce;
+    private Stairs _currentStairs;
+    private string _tagStairs = "Stairs";
 
     #region Observer
     public void OnNotify(EventsEnum evt)
-{
-    string name = evt.ToString();
-
-    int floor = name switch
     {
-        "FIRST_FLOOR" => 1,
-        "SECOND_FLOOR" => 2,
-        "THIRD_FLOOR" => 3,
-        "FOURTH_FLOOR" => 4,
-        "FIFTH_FLOOR" => 5,
-        "SIXTH_FLOOR" => 6,
-        "SEVENTH_FLOOR" => 7,
-        "EIGHTH_FLOOR" => 8,
-        "NINTH_FLOOR" => 9,
-        "TENTH_FLOOR" => 10,
-        "ELEVENTH_FLOOR" => 11,
-        "TWELFTH_FLOOR" => 12,
-        "THIRTEENTH_FLOOR" => 13,
-        _ => _currentElevatorFloor
-    };
+        string name = evt.ToString();
 
-    _currentElevatorFloor = floor;
-}
+        int floor = name switch
+        {
+            "FIRST_FLOOR" => 1,
+            "SECOND_FLOOR" => 2,
+            "THIRD_FLOOR" => 3,
+            "FOURTH_FLOOR" => 4,
+            "FIFTH_FLOOR" => 5,
+            "SIXTH_FLOOR" => 6,
+            "SEVENTH_FLOOR" => 7,
+            "EIGHTH_FLOOR" => 8,
+            "NINTH_FLOOR" => 9,
+            "TENTH_FLOOR" => 10,
+            "ELEVENTH_FLOOR" => 11,
+            "TWELFTH_FLOOR" => 12,
+            "THIRTEENTH_FLOOR" => 13,
+            _ => _currentElevatorFloor
+        };
+
+        _currentElevatorFloor = floor;
+    }
 
     #endregion
 
@@ -79,6 +81,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         HandleActions();
         HandleDoorBehaviour();
         HandleInvisibleWallCollision();
+        HandleStairsBehaviour();
     }
 
     private void HandleMovement()
@@ -221,6 +224,11 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             _canEnterDoor = true;
             _currentDoor = collision.gameObject.GetComponent<Door>();
         }
+        if(collision.CompareTag(_tagStairs))
+        {
+            _currentStairs = collision.GetComponent<Stairs>();
+        }
+
     }
 
     private void HandleDoorBehaviour()
@@ -242,13 +250,38 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         }
     }
 
+    private void HandleStairsBehaviour()
+    {
+        if(_currentDoor != null)
+        {
+            if(_canEnterDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
+            {
+                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -1;
+                _canEnterDoor = false;
+                _inDoor = true;
+            }else if(_inDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
+            {
+                _currentDoor.SetIsActive(false);
+
+                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
+                _inDoor = false;
+            }
+        }
+    }
+
     void OnTriggerExit2D(Collider2D collision)
     {
-        if(collision.CompareTag(_tagDoor))
+        if (collision.CompareTag(_tagDoor))
         {
             _canEnterDoor = true;
 
             _currentDoor = null;
+
+
+        }
+        if(collision.CompareTag(_tagStairs))
+        {
+            _currentStairs = null;
         }
     }
 

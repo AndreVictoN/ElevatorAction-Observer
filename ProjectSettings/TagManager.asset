@@ -10,6 +10,7 @@ TagManager:
   - SECOND_FLOOR
   - THIRD_FLOOR
   - Door
+  - Stairs
   layers:
   - Default
   - TransparentFX
