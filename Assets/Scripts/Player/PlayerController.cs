@@ -32,29 +32,29 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     #region Observer
     public void OnNotify(EventsEnum evt)
-{
-    string name = evt.ToString();
-
-    int floor = name switch
     {
-        "FIRST_FLOOR" => 1,
-        "SECOND_FLOOR" => 2,
-        "THIRD_FLOOR" => 3,
-        "FOURTH_FLOOR" => 4,
-        "FIFTH_FLOOR" => 5,
-        "SIXTH_FLOOR" => 6,
-        "SEVENTH_FLOOR" => 7,
-        "EIGHTH_FLOOR" => 8,
-        "NINTH_FLOOR" => 9,
-        "TENTH_FLOOR" => 10,
-        "ELEVENTH_FLOOR" => 11,
-        "TWELFTH_FLOOR" => 12,
-        "THIRTEENTH_FLOOR" => 13,
-        _ => _currentElevatorFloor
-    };
+        string name = evt.ToString();
 
-    _currentElevatorFloor = floor;
-}
+        int floor = name switch
+        {
+            "FIRST_FLOOR" => 1,
+            "SECOND_FLOOR" => 2,
+            "THIRD_FLOOR" => 3,
+            "FOURTH_FLOOR" => 4,
+            "FIFTH_FLOOR" => 5,
+            "SIXTH_FLOOR" => 6,
+            "SEVENTH_FLOOR" => 7,
+            "EIGHTH_FLOOR" => 8,
+            "NINTH_FLOOR" => 9,
+            "TENTH_FLOOR" => 10,
+            "ELEVENTH_FLOOR" => 11,
+            "TWELFTH_FLOOR" => 12,
+            "THIRTEENTH_FLOOR" => 13,
+            _ => _currentElevatorFloor
+        };
+
+        _currentElevatorFloor = floor;
+    }
 
     #endregion
 
@@ -130,13 +130,16 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     private void HandleInvisibleWallCollision()
     {
-        if(_currentElevatorFloor < _myCurrentFloor || _currentElevatorFloor > _myCurrentFloor + 1)
+        if(_currentElevatorFloor < _myCurrentFloor || _currentElevatorFloor > _myCurrentFloor + 1 || _currentElevatorFloor == _myCurrentFloor)
         {
-            Debug.Log(_invisibleWalls.Count - _myCurrentFloor);
-            for(int i = 0; i <= _invisibleWalls.Count - _myCurrentFloor; i++)
+            for(int i = _myCurrentFloor - 1; i < _invisibleWalls.Count; i++)
             {
-                //Debug.Log(_myCurrentFloor + i - 1);
-                Physics2D.IgnoreCollision(_invisibleWalls[_myCurrentFloor + i - 1].GetComponent<BoxCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>());
+                Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>(), true);
+            }
+        }else{
+            for(int i = _myCurrentFloor - 1; i < _invisibleWalls.Count; i++)
+            {
+                Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>(), false);
             }
         }
     }
@@ -167,52 +170,52 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     }
 
     private void CheckFloor(Collision2D col)
-{
-    float y = col.transform.parent.localPosition.y;
-
-    switch (y)
     {
-        case float f when Mathf.Abs(f - 1.112f) < 0.01f:
-            _myCurrentFloor = 1;
-            break;
-        case float f when Mathf.Abs(f + 1.112f) < 0.01f:
-            _myCurrentFloor = 2;
-            break;
-        case float f when Mathf.Abs(f + 3.336f) < 0.01f:
-            _myCurrentFloor = 3;
-            break;
-        case float f when Mathf.Abs(f + 5.336f) < 0.01f:
-            _myCurrentFloor = 4;
-            break;
-        case float f when Mathf.Abs(f + 7.336f) < 0.01f:
-            _myCurrentFloor = 5;
-            break;
-        case float f when Mathf.Abs(f + 9.336f) < 0.01f:
-            _myCurrentFloor = 6;
-            break;
-        case float f when Mathf.Abs(f + 11.336f) < 0.01f:
-            _myCurrentFloor = 7;
-            break;
-        case float f when Mathf.Abs(f + 13.336f) < 0.01f:
-            _myCurrentFloor = 8;
-            break;
-        case float f when Mathf.Abs(f + 15.336f) < 0.01f:
-            _myCurrentFloor = 9;
-            break;
-        case float f when Mathf.Abs(f + 17.336f) < 0.01f:
-            _myCurrentFloor = 10;
-            break;
-        case float f when Mathf.Abs(f + 19.336f) < 0.01f:
-            _myCurrentFloor = 11;
-            break;
-        case float f when Mathf.Abs(f + 21.336f) < 0.01f:
-            _myCurrentFloor = 12;
-            break;
-        case float f when Mathf.Abs(f + 23.336f) < 0.01f:
-            _myCurrentFloor = 13;
-            break;
+        float y = col.transform.parent.localPosition.y;
+
+        switch (y)
+        {
+            case float f when Mathf.Abs(f - 1.112f) < 0.01f:
+                _myCurrentFloor = 1;
+                break;
+            case float f when Mathf.Abs(f + 1.112f) < 0.01f:
+                _myCurrentFloor = 2;
+                break;
+            case float f when Mathf.Abs(f + 3.336f) < 0.01f:
+                _myCurrentFloor = 3;
+                break;
+            case float f when Mathf.Abs(f + 5.336f) < 0.01f:
+                _myCurrentFloor = 4;
+                break;
+            case float f when Mathf.Abs(f + 7.336f) < 0.01f:
+                _myCurrentFloor = 5;
+                break;
+            case float f when Mathf.Abs(f + 9.336f) < 0.01f:
+                _myCurrentFloor = 6;
+                break;
+            case float f when Mathf.Abs(f + 11.336f) < 0.01f:
+                _myCurrentFloor = 7;
+                break;
+            case float f when Mathf.Abs(f + 13.336f) < 0.01f:
+                _myCurrentFloor = 8;
+                break;
+            case float f when Mathf.Abs(f + 15.336f) < 0.01f:
+                _myCurrentFloor = 9;
+                break;
+            case float f when Mathf.Abs(f + 17.336f) < 0.01f:
+                _myCurrentFloor = 10;
+                break;
+            case float f when Mathf.Abs(f + 19.336f) < 0.01f:
+                _myCurrentFloor = 11;
+                break;
+            case float f when Mathf.Abs(f + 21.336f) < 0.01f:
+                _myCurrentFloor = 12;
+                break;
+            case float f when Mathf.Abs(f + 23.336f) < 0.01f:
+                _myCurrentFloor = 13;
+                break;
+        }
     }
-}
 
     void OnTriggerEnter2D(Collider2D collision)
     {
