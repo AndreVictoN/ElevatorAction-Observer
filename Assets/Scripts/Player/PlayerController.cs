@@ -140,13 +140,16 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     private void HandleInvisibleWallCollision()
     {
-        if(_currentElevatorFloor < _myCurrentFloor || _currentElevatorFloor > _myCurrentFloor + 1)
+        if(_currentElevatorFloor < _myCurrentFloor || _currentElevatorFloor > _myCurrentFloor + 1 || _currentElevatorFloor == _myCurrentFloor)
         {
-            Debug.Log(_invisibleWalls.Count - _myCurrentFloor);
-            for(int i = 0; i <= _invisibleWalls.Count - _myCurrentFloor; i++)
+            for(int i = _myCurrentFloor - 1; i < _invisibleWalls.Count; i++)
             {
-                //Debug.Log(_myCurrentFloor + i - 1);
-                Physics2D.IgnoreCollision(_invisibleWalls[_myCurrentFloor + i - 1].GetComponent<BoxCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>());
+                Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>(), true);
+            }
+        }else{
+            for(int i = _myCurrentFloor - 1; i < _invisibleWalls.Count; i++)
+            {
+                Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>(), false);
             }
         }
     }
@@ -177,18 +180,18 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     }
 
     private void CheckFloor(Collision2D col)
-{
-    float y = col.transform.parent.localPosition.y;
+    {
+        float y = col.transform.parent.localPosition.y;
 
-    for (int i = 0; i < 20; i++) {
-        float targetY = 1.112f + i * -2.0f;
-        if (Mathf.Abs(y - targetY) < 0.01f)
-        {
-            _myCurrentFloor = i + 1;
-            break;
+        for (int i = 0; i < 20; i++) {
+            float targetY = 1.112f + i * -2.0f;
+            if (Mathf.Abs(y - targetY) < 0.01f)
+            {
+                _myCurrentFloor = i + 1;
+                break;
+            }
         }
     }
-}
 
     void OnTriggerEnter2D(Collider2D collision)
     {

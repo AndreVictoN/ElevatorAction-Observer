@@ -10,7 +10,7 @@ public class InvisibleWalls : MonoBehaviour, IObserver
     #region Observer
     public void OnNotify(EventsEnum evt)
     {
-        Debug.Log(evt.ToString());
+        //Debug.Log(evt.ToString());
         if(this.gameObject.CompareTag(evt.ToString()))
         {
             this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
@@ -29,11 +29,6 @@ public class InvisibleWalls : MonoBehaviour, IObserver
     void Awake()
     {
         ManageElevatorColliders();
-
-        if(this.gameObject.CompareTag("FIRST_FLOOR"))
-        {
-            this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
-        }
     }
 
     private void ManageElevatorColliders()
