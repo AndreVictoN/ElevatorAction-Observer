@@ -52,6 +52,13 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             "ELEVENTH_FLOOR" => 11,
             "TWELFTH_FLOOR" => 12,
             "THIRTEENTH_FLOOR" => 13,
+            "FOURTEENTH_FLOOR" => 14,
+            "FIFTEENTH_FLOOR" => 15,
+            "SIXTEENTH_FLOOR" => 16,
+            "SEVENTEENTH_FLOOR" => 17,
+            "EIGHTEENTH_FLOOR" => 18,
+            "NINETEENTH_FLOOR" => 19,
+            "TWENTIETH_FLOOR" => 20,
             _ => _currentElevatorFloor
         };
 
@@ -173,6 +180,17 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     }
 
     private void CheckFloor(Collision2D col)
+<<<<<<< HEAD
+{
+    float y = col.transform.parent.localPosition.y;
+
+    for (int i = 0; i < 20; i++) {
+        float targetY = 1.112f + i * -2.0f;
+        if (Mathf.Abs(y - targetY) < 0.01f)
+        {
+            _myCurrentFloor = i + 1;
+            break;
+=======
     {
         float y = col.transform.parent.localPosition.y;
 
@@ -217,6 +235,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             case float f when Mathf.Abs(f + 23.336f) < 0.01f:
                 _myCurrentFloor = 13;
                 break;
+>>>>>>> ddf75604bf47ad4794e99de1b6fb256d4a919d9f
         }
     }
 
