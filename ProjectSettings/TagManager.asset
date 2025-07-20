@@ -10,7 +10,6 @@ TagManager:
   - SECOND_FLOOR
   - THIRD_FLOOR
   - Door
-  - Stairs
   - FOURTH_FLOOR
   - FIFTH_FLOOR
   - SIXTH_FLOOR

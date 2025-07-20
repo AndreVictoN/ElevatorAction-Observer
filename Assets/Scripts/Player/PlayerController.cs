@@ -29,8 +29,6 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     private Tween _currentTween;
     private Door _currentDoor;
     private float _jumpForce;
-    private Stairs _currentStairs;
-    private string _tagStairs = "Stairs";
 
     #region Observer
     public void OnNotify(EventsEnum evt)
@@ -81,7 +79,6 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         HandleActions();
         HandleDoorBehaviour();
         HandleInvisibleWallCollision();
-        HandleStairsBehaviour();
     }
 
     private void HandleMovement()
@@ -227,11 +224,6 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             _canEnterDoor = true;
             _currentDoor = collision.gameObject.GetComponent<Door>();
         }
-        if(collision.CompareTag(_tagStairs))
-        {
-            _currentStairs = collision.GetComponent<Stairs>();
-        }
-
     }
 
     private void HandleDoorBehaviour()
@@ -253,38 +245,13 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         }
     }
 
-    private void HandleStairsBehaviour()
-    {
-        if(_currentDoor != null)
-        {
-            if(_canEnterDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
-            {
-                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -1;
-                _canEnterDoor = false;
-                _inDoor = true;
-            }else if(_inDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
-            {
-                _currentDoor.SetIsActive(false);
-
-                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
-                _inDoor = false;
-            }
-        }
-    }
-
     void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.CompareTag(_tagDoor))
+        if(collision.CompareTag(_tagDoor))
         {
             _canEnterDoor = true;
 
             _currentDoor = null;
-
-
-        }
-        if(collision.CompareTag(_tagStairs))
-        {
-            _currentStairs = null;
         }
     }
 
