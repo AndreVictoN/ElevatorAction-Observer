@@ -59,6 +59,13 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             "EIGHTEENTH_FLOOR" => 18,
             "NINETEENTH_FLOOR" => 19,
             "TWENTIETH_FLOOR" => 20,
+            "FOURTEENTH_FLOOR" => 14,
+            "FIFTEENTH_FLOOR" => 15,
+            "SIXTEENTH_FLOOR" => 16,
+            "SEVENTEENTH_FLOOR" => 17,
+            "EIGHTEENTH_FLOOR" => 18,
+            "NINETEENTH_FLOOR" => 19,
+            "TWENTIETH_FLOOR" => 20,
             _ => _currentElevatorFloor
         };
 

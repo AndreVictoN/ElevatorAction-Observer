@@ -10013,6 +10013,8 @@ Transform:
   - {fileID: 1969225517}
   m_Father: {fileID: 1124606036}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+<<<<<<< HEAD
+=======
 --- !u!61 &548473334
 --- !u!61 &1594763888
 BoxCollider2D:
@@ -10145,6 +10147,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+>>>>>>> ddf75604bf47ad4794e99de1b6fb256d4a919d9f
 --- !u!1 &562911180
 --- !u!61 &1611141211
 BoxCollider2D:
