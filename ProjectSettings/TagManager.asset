@@ -11,6 +11,16 @@ TagManager:
   - THIRD_FLOOR
   - Door
   - Stairs
+  - FOURTH_FLOOR
+  - FIFTH_FLOOR
+  - SIXTH_FLOOR
+  - SEVENTH_FLOOR
+  - EIGHTH_FLOOR
+  - NINTH_FLOOR
+  - TENTH_FLOOR
+  - ELEVENTH_FLOOR
+  - TWELFTH_FLOOR
+  - THIRTEENTH_FLOOR
   layers:
   - Default
   - TransparentFX
