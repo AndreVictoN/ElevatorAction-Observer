@@ -19,8 +19,16 @@ public class ElevatorManager : Subject
     private bool _isChangingFloor = false;
     private float[] _movementConstant;
     private Dictionary<int, EventsEnum> _floorEventsKeys = new Dictionary<int, EventsEnum>();
+    [SerializeField]private bool _playerIn;
+    [SerializeField]private bool _playerOnCommand;
+    [SerializeField]private bool _playerIsGoingUp;
     
     void Start()
+    {
+        ResetSetup();
+    }
+
+    private void ResetSetup()
     {
         Subscribe(PlayerController.Instance);
         Subscribe(FindObjectsOfType<InvisibleWalls>());
@@ -29,12 +37,14 @@ public class ElevatorManager : Subject
         _initialYPosition = transform.position.y;
         _scaleY = transform.localScale.y;
         _movementConstant = new float[2] { 1.4f*_scaleY, 0.255f};
+        _playerIn = false;
     }
 
     void Update()
     {
         HandleMovement();
         CleanAlreadyPassed();
+        PlayerControls();
     }
 
     private void CleanAlreadyPassed()
@@ -47,34 +57,52 @@ public class ElevatorManager : Subject
 
     private void HandleMovement()
     {
-        if(_isChangingFloor) return;
-        float y = this.gameObject.transform.position.y;
+        if(!_playerOnCommand)
+        {
+            if(_isChangingFloor) return;
+            float y = this.gameObject.transform.position.y;
 
-        if(Mathf.Approximately(y, _initialYPosition))
-        {
-            _currentFloor = 1;
-            if(!_alreadyPassed.Contains(_currentFloor)) _alreadyPassed.Add(_currentFloor);
-            StartCoroutine(ChangeFloor(_currentFloor));
-        }
-        
-        for(int i = 1; i < Enum.GetNames(typeof(EventsEnum)).Length; i++)
-        {
-            if(Mathf.Approximately(y, _initialYPosition - (i * _movementConstant[0]) - (i * _movementConstant[1])))
+            if(Mathf.Approximately(y, _initialYPosition))
             {
-                _currentFloor = i + 1;
+                _currentFloor = 1;
                 if(!_alreadyPassed.Contains(_currentFloor)) _alreadyPassed.Add(_currentFloor);
-                StartCoroutine(ChangeFloor(_currentFloor));
+                StartCoroutine(ChangeFloor(_currentFloor, false));
+            }
+            
+            for(int i = 1; i < Enum.GetNames(typeof(EventsEnum)).Length; i++)
+            {
+                if(Mathf.Approximately(y, _initialYPosition - (i * _movementConstant[0]) - (i * _movementConstant[1])))
+                {
+                    _currentFloor = i + 1;
+                    if(!_alreadyPassed.Contains(_currentFloor)) _alreadyPassed.Add(_currentFloor);
+                    StartCoroutine(ChangeFloor(_currentFloor, false));
 
-                break;
+                    break;
+                }
             }
         }
     }
 
-    public IEnumerator ChangeFloor(int currentFloor)
+    private void PlayerControls()
+    {
+        if(_playerIn && Input.GetKeyDown(KeyCode.UpArrow) && _currentFloor != 1)
+        {
+            _playerOnCommand = true;
+            _playerIsGoingUp = true;
+            StartCoroutine(ChangeFloor(_currentFloor, true));
+        }else if(_playerIn && Input.GetKeyDown(KeyCode.DownArrow) && _currentFloor != 13)
+        {
+            _playerOnCommand = true;
+            _playerIsGoingUp = false;
+            StartCoroutine(ChangeFloor(_currentFloor, true));
+        }
+    }
+
+    public IEnumerator ChangeFloor(int currentFloor, bool isPlayer)
     {
         _isChangingFloor = true;
 
-        yield return new WaitForSeconds(3f);
+        if(!isPlayer) yield return new WaitForSeconds(3f);
 
         _currentTween?.Kill();
 
@@ -82,6 +110,7 @@ public class ElevatorManager : Subject
 
         yield return _currentTween.WaitForCompletion();
         _isChangingFloor = false;
+        _playerIsGoingUp = false;
     }
 
     private void CheckCurrentFloor(int currentFloor)
@@ -99,7 +128,7 @@ public class ElevatorManager : Subject
                     _wentUp = true;
                     break;
                 }else if (i == 2){
-                    if((PlayerController.Instance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.Instance.GetCurrentFloor() + 2)) || _wentUp)
+                    if((PlayerController.Instance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.Instance.GetCurrentFloor() + 2)) || _wentUp || _playerIsGoingUp)
                     {
                         _currentTween = transform.DOLocalMoveY(_initialYPosition, 2f);
                         Notify(EventsEnum.FIRST_FLOOR);
@@ -111,7 +140,7 @@ public class ElevatorManager : Subject
                     }
                     break;
                 }else{
-                    if((PlayerController.Instance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.Instance.GetCurrentFloor() + 2)) || _wentUp)
+                    if((PlayerController.Instance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.Instance.GetCurrentFloor() + 2)) || _wentUp || _playerIsGoingUp)
                     {
                         _currentTween = transform.DOLocalMoveY(_initialYPosition - (currentFloor-2)*_movementConstant[0] - (currentFloor-2)*_movementConstant[1], 2f);
                         Notify(_floorEventsKeys[currentFloor-1]);
@@ -125,6 +154,33 @@ public class ElevatorManager : Subject
                 }
             }
         }
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.gameObject == PlayerController.Instance.gameObject)
+        {
+            _playerIn = true;
+            Notify(EventsEnum.PLAYER_IN_ELEVATOR);
+            collision.gameObject.transform.SetParent(this.gameObject.transform);
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        if(collision.gameObject == PlayerController.Instance.gameObject)
+        {
+            _playerIn = false;
+            _playerOnCommand = false;
+            Notify(EventsEnum.PLAYER_NOT_IN_ELEVATOR);
+            if(collision.gameObject.activeSelf == true) StartCoroutine(Unparent(collision.gameObject));
+        }
+    }
+
+    private IEnumerator Unparent(GameObject gO)
+    {
+        yield return null;
+        gO.transform.SetParent(null);
     }
 
     #region Floor Events Keys Dictionary

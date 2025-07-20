@@ -11,11 +11,14 @@ public class InvisibleWalls : MonoBehaviour, IObserver
     public void OnNotify(EventsEnum evt)
     {
         //Debug.Log(evt.ToString());
-        if(this.gameObject.CompareTag(evt.ToString()))
+        if(evt != EventsEnum.PLAYER_IN_ELEVATOR && evt != EventsEnum.PLAYER_NOT_IN_ELEVATOR)
         {
-            this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
-        }else{
-            StartCoroutine(ActivateColision());
+            if(this.gameObject.CompareTag(evt.ToString()))
+            {
+                this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
+            }else{
+                StartCoroutine(ActivateColision());
+            }
         }
     }
 

@@ -53,12 +53,24 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             _ => _currentElevatorFloor
         };
 
+        if(evt == EventsEnum.PLAYER_IN_ELEVATOR)
+        {
+            _isOnElevator = true;
+        }else if(evt == EventsEnum.PLAYER_NOT_IN_ELEVATOR)
+        {
+            _isOnElevator = false;
+        }
+
         _currentElevatorFloor = floor;
     }
-
     #endregion
 
     void Start()
+    {
+        ResetSetup();
+    }
+
+    private void ResetSetup()
     {
         myRigidBody = this.gameObject.GetComponent<Rigidbody2D>();
         _defaultScale = this.gameObject.transform.localScale;
@@ -66,6 +78,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         _isCrouching = false;
         _myCurrentFloor = 1;
         _isOnFloor = false;
+        _isOnElevator = false;
     }
 
     void FixedUpdate()
@@ -105,7 +118,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         if(_isCrouching){_jumpForce = _crouchingJumpForce;}
         else{_jumpForce = _baseJumpForce;}
 
-        if((_isOnFloor || _isOnElevator) && Input.GetKeyDown(KeyCode.UpArrow) && !_inDoor)
+        if(_isOnFloor && Input.GetKeyDown(KeyCode.UpArrow) && !_inDoor && !_isOnElevator)
         {
             myRigidBody.velocity = Vector2.up * _jumpForce;
         }
@@ -113,7 +126,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     private void HandleActions()
     {
-        if(Input.GetKeyDown(KeyCode.DownArrow) && (_isOnFloor || _isOnElevator) && !_inDoor)
+        if(Input.GetKeyDown(KeyCode.DownArrow) && _isOnFloor && !_inDoor && !_isOnElevator)
         {
             _currentTween?.Kill();
             
@@ -154,7 +167,6 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         }else if(collision.gameObject.CompareTag(_tagElevator))
         {
             _myCurrentFloor = _currentElevatorFloor;
-            _isOnElevator = true;
         }
     }
 
@@ -163,9 +175,6 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         if(collision.gameObject.CompareTag(_tagFloor))
         {
             _isOnFloor = false;
-        }else if(collision.gameObject.CompareTag(_tagElevator))
-        {
-            _isOnElevator = false;
         }
     }
 
