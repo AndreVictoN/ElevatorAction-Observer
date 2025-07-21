@@ -36,7 +36,7 @@ public class ElevatorManager : Subject
         Notify(EventsEnum.FIRST_FLOOR);
         _initialYPosition = transform.position.y;
         _scaleY = transform.localScale.y;
-        _movementConstant = new float[2] { 1.4f*_scaleY, 0.255f};
+        _movementConstant = new float[2] { 1.4f*_scaleY, 0.256f};
         _playerIn = false;
     }
 
@@ -45,11 +45,28 @@ public class ElevatorManager : Subject
         HandleMovement();
         CleanAlreadyPassed();
         PlayerControls();
+        ManageConstant();
+    }
+
+    private void ManageConstant()
+    {
+        if (_currentFloor == 1)
+        {
+            _movementConstant[1] = 0.2546f;
+        }
+        else if (_currentFloor >= 2 && _currentFloor <= 11)
+        {
+          _movementConstant[1] = 0.254f;
+        }
+        else if (_currentFloor >= 12)
+        {
+            _movementConstant[1] += 0.253f;
+        }
     }
 
     private void CleanAlreadyPassed()
     {
-        if(PlayerController.Instance.GetCurrentFloor() == _currentFloor)
+        if (PlayerController.Instance.GetCurrentFloor() == _currentFloor)
         {
             _alreadyPassed.Clear();
         }
@@ -67,7 +84,7 @@ public class ElevatorManager : Subject
             if(!_playerOnCommand) StartCoroutine(ChangeFloor(_currentFloor, false));
         }
             
-        for(int i = 1; i < Enum.GetNames(typeof(EventsEnum)).Length; i++)
+        for(int i = 1; i < Enum.GetNames(typeof(EventsEnum)).Length - 2; i++)
         {
             if(Mathf.Approximately(y, _initialYPosition - (i * _movementConstant[0]) - (i * _movementConstant[1])))
             {
@@ -90,7 +107,7 @@ public class ElevatorManager : Subject
             _playerIsGoingUp = true;
             StartCoroutine(ChangeFloor(_currentFloor, true));
         }
-        else if (_playerIn && Input.GetKeyDown(KeyCode.DownArrow) && _currentFloor != 13)
+        else if (_playerIn && Input.GetKeyDown(KeyCode.DownArrow) && _currentFloor != 20)
         {
             _wentUp = false;
             _playerOnCommand = true;
@@ -116,16 +133,16 @@ public class ElevatorManager : Subject
 
     private void CheckCurrentFloor(int currentFloor)
     {
-        for(int i = 1; i <= 13; i++){
+        for(int i = 1; i <= 20; i++){
             if(currentFloor == i){
                 if(i == 1){
                     _currentTween = transform.DOLocalMoveY(_initialYPosition - _movementConstant[0] - _movementConstant[1], 2f);
                     Notify(EventsEnum.SECOND_FLOOR);
                     _wentUp = false;
                     break;
-                }else if(i == 13){
-                    _currentTween = transform.DOLocalMoveY(_initialYPosition - 11*_movementConstant[0] - 11*_movementConstant[1], 2f);
-                    Notify(EventsEnum.TWELFTH_FLOOR);
+                }else if(i == 20){
+                    _currentTween = transform.DOLocalMoveY(_initialYPosition - 18*_movementConstant[0] - 18*_movementConstant[1], 2f);
+                    Notify(EventsEnum.NINETEENTH_FLOOR);
                     _wentUp = true;
                     break;
                 }else if (i == 2){
@@ -191,6 +208,8 @@ public class ElevatorManager : Subject
 
         foreach(EventsEnum events in Enum.GetValues(typeof(EventsEnum)))
         {
+            if(events == EventsEnum.PLAYER_IN_ELEVATOR || events == EventsEnum.PLAYER_NOT_IN_ELEVATOR) continue;
+
             floorKey++;
             _floorEventsKeys.Add(floorKey, events);
         }

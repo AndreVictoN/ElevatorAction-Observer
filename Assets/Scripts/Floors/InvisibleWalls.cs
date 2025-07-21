@@ -32,14 +32,11 @@ public class InvisibleWalls : MonoBehaviour, IObserver
             foreach (EventsEnum enumEvent in EventsEnum.GetValues(typeof(EventsEnum)))
             {
                 floor++;
-
-                if (this.gameObject.CompareTag(enumEvent.ToString()))
-                {
-                    break;
-                }
+                if(this == null || gameObject == null) { break; }
+                if (this.gameObject.CompareTag(enumEvent.ToString())) { break; }
             }
-            
-            if (PlayerController.Instance.GetCurrentFloor() != floor - 1) this.gameObject.GetComponent<BoxCollider2D>().enabled = true;
+            if (this == null || gameObject == null) return;
+            if (PlayerController.Instance.GetCurrentFloor() != floor) this.gameObject.GetComponent<BoxCollider2D>().enabled = true;
         }
     }
 

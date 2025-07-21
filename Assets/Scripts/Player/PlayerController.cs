@@ -50,6 +50,13 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             "ELEVENTH_FLOOR" => 11,
             "TWELFTH_FLOOR" => 12,
             "THIRTEENTH_FLOOR" => 13,
+            "FOURTEENTH_FLOOR" => 14,
+            "FIFTEENTH_FLOOR" => 15,
+            "SIXTEENTH_FLOOR" => 16,
+            "SEVENTEENTH_FLOOR" => 17,
+            "EIGHTEENTH_FLOOR" => 18,
+            "NINETEENTH_FLOOR" => 19,
+            "TWENTIETH_FLOOR" => 20,
             _ => _currentElevatorFloor
         };
 
@@ -182,47 +189,14 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     {
         float y = col.transform.parent.localPosition.y;
 
-        switch (y)
+        for (int i = 0; i < 20; i++)
         {
-            case float f when Mathf.Abs(f - 1.112f) < 0.01f:
-                _myCurrentFloor = 1;
+            float targetY = 1.112f + i * -2.0f;
+            if (Mathf.Abs(y - targetY) < 0.01f)
+            {
+                _myCurrentFloor = i + 1;
                 break;
-            case float f when Mathf.Abs(f + 1.112f) < 0.01f:
-                _myCurrentFloor = 2;
-                break;
-            case float f when Mathf.Abs(f + 3.336f) < 0.01f:
-                _myCurrentFloor = 3;
-                break;
-            case float f when Mathf.Abs(f + 5.336f) < 0.01f:
-                _myCurrentFloor = 4;
-                break;
-            case float f when Mathf.Abs(f + 7.336f) < 0.01f:
-                _myCurrentFloor = 5;
-                break;
-            case float f when Mathf.Abs(f + 9.336f) < 0.01f:
-                _myCurrentFloor = 6;
-                break;
-            case float f when Mathf.Abs(f + 11.336f) < 0.01f:
-                _myCurrentFloor = 7;
-                break;
-            case float f when Mathf.Abs(f + 13.336f) < 0.01f:
-                _myCurrentFloor = 8;
-                break;
-            case float f when Mathf.Abs(f + 15.336f) < 0.01f:
-                _myCurrentFloor = 9;
-                break;
-            case float f when Mathf.Abs(f + 17.336f) < 0.01f:
-                _myCurrentFloor = 10;
-                break;
-            case float f when Mathf.Abs(f + 19.336f) < 0.01f:
-                _myCurrentFloor = 11;
-                break;
-            case float f when Mathf.Abs(f + 21.336f) < 0.01f:
-                _myCurrentFloor = 12;
-                break;
-            case float f when Mathf.Abs(f + 23.336f) < 0.01f:
-                _myCurrentFloor = 13;
-                break;
+            }
         }
     }
 
