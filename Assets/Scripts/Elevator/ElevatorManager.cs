@@ -57,41 +57,42 @@ public class ElevatorManager : Subject
 
     private void HandleMovement()
     {
-        if(!_playerOnCommand)
+        if(_isChangingFloor) return;
+        float y = this.gameObject.transform.position.y;
+
+        if(Mathf.Approximately(y, _initialYPosition))
         {
-            if(_isChangingFloor) return;
-            float y = this.gameObject.transform.position.y;
-
-            if(Mathf.Approximately(y, _initialYPosition))
-            {
-                _currentFloor = 1;
-                if(!_alreadyPassed.Contains(_currentFloor)) _alreadyPassed.Add(_currentFloor);
-                StartCoroutine(ChangeFloor(_currentFloor, false));
-            }
+            _currentFloor = 1;
+            if(!_alreadyPassed.Contains(_currentFloor)) _alreadyPassed.Add(_currentFloor);
+            if(!_playerOnCommand) StartCoroutine(ChangeFloor(_currentFloor, false));
+        }
             
-            for(int i = 1; i < Enum.GetNames(typeof(EventsEnum)).Length; i++)
+        for(int i = 1; i < Enum.GetNames(typeof(EventsEnum)).Length; i++)
+        {
+            if(Mathf.Approximately(y, _initialYPosition - (i * _movementConstant[0]) - (i * _movementConstant[1])))
             {
-                if(Mathf.Approximately(y, _initialYPosition - (i * _movementConstant[0]) - (i * _movementConstant[1])))
-                {
-                    _currentFloor = i + 1;
-                    if(!_alreadyPassed.Contains(_currentFloor)) _alreadyPassed.Add(_currentFloor);
-                    StartCoroutine(ChangeFloor(_currentFloor, false));
+                _currentFloor = i + 1;
+                if(!_alreadyPassed.Contains(_currentFloor)) _alreadyPassed.Add(_currentFloor);
+                if(!_playerOnCommand) StartCoroutine(ChangeFloor(_currentFloor, false));
 
-                    break;
-                }
+                break;
             }
         }
     }
 
     private void PlayerControls()
     {
-        if(_playerIn && Input.GetKeyDown(KeyCode.UpArrow) && _currentFloor != 1)
+        if(_playerIn) PlayerController.Instance.SetCurrentFloor(_currentFloor);
+
+        if (_playerIn && Input.GetKeyDown(KeyCode.UpArrow) && _currentFloor != 1)
         {
             _playerOnCommand = true;
             _playerIsGoingUp = true;
             StartCoroutine(ChangeFloor(_currentFloor, true));
-        }else if(_playerIn && Input.GetKeyDown(KeyCode.DownArrow) && _currentFloor != 13)
+        }
+        else if (_playerIn && Input.GetKeyDown(KeyCode.DownArrow) && _currentFloor != 13)
         {
+            _wentUp = false;
             _playerOnCommand = true;
             _playerIsGoingUp = false;
             StartCoroutine(ChangeFloor(_currentFloor, true));
@@ -102,7 +103,7 @@ public class ElevatorManager : Subject
     {
         _isChangingFloor = true;
 
-        if(!isPlayer) yield return new WaitForSeconds(3f);
+        if (!isPlayer) yield return new WaitForSeconds(3f);
 
         _currentTween?.Kill();
 
@@ -173,7 +174,7 @@ public class ElevatorManager : Subject
             _playerIn = false;
             _playerOnCommand = false;
             Notify(EventsEnum.PLAYER_NOT_IN_ELEVATOR);
-            if(collision.gameObject.activeSelf == true) StartCoroutine(Unparent(collision.gameObject));
+            if(collision.gameObject.activeSelf == true && this.gameObject.activeSelf == true) StartCoroutine(Unparent(collision.gameObject));
         }
     }
 

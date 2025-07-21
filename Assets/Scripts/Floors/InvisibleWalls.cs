@@ -10,15 +10,36 @@ public class InvisibleWalls : MonoBehaviour, IObserver
     #region Observer
     public void OnNotify(EventsEnum evt)
     {
+        int floor = 0;
         //Debug.Log(evt.ToString());
-        if(evt != EventsEnum.PLAYER_IN_ELEVATOR && evt != EventsEnum.PLAYER_NOT_IN_ELEVATOR)
+        if (evt != EventsEnum.PLAYER_IN_ELEVATOR && evt != EventsEnum.PLAYER_NOT_IN_ELEVATOR)
         {
-            if(this.gameObject.CompareTag(evt.ToString()))
+            if (this.gameObject.CompareTag(evt.ToString()))
             {
                 this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
-            }else{
+            }
+            else
+            {
                 StartCoroutine(ActivateColision());
             }
+        }
+        else if (evt == EventsEnum.PLAYER_IN_ELEVATOR)
+        {
+            this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
+        }
+        else if (evt == EventsEnum.PLAYER_NOT_IN_ELEVATOR)
+        {
+            foreach (EventsEnum enumEvent in EventsEnum.GetValues(typeof(EventsEnum)))
+            {
+                floor++;
+
+                if (this.gameObject.CompareTag(enumEvent.ToString()))
+                {
+                    break;
+                }
+            }
+            
+            if (PlayerController.Instance.GetCurrentFloor() != floor - 1) this.gameObject.GetComponent<BoxCollider2D>().enabled = true;
         }
     }
 

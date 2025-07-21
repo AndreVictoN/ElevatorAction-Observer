@@ -263,6 +263,11 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             _currentDoor = null;
         }
     }
+    
+    public void SetCurrentFloor(int floor)
+    {
+        _myCurrentFloor = floor;
+    }
 
-    public int GetCurrentFloor(){return _myCurrentFloor;}
+    public int GetCurrentFloor() { return _myCurrentFloor; }
 }
