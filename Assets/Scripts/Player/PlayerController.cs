@@ -40,6 +40,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     private float _elevatorX;
     private bool _isWalking;
     private bool _isJumping;
+    private float _playerHealth;
 
     #region Observer
     public void OnNotify(EventsEnum evt)
@@ -71,12 +72,13 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             _ => _currentElevatorFloor
         };
 
-        if(evt == EventsEnum.PLAYER_IN_ELEVATOR)
+        if (evt == EventsEnum.PLAYER_IN_ELEVATOR)
         {
             _elevatorX = 0.5f / this.transform.localScale.x;
             this.gameObject.transform.localScale = new Vector2(_elevatorX, this.transform.localScale.y);
             _isOnElevator = true;
-        }else if(evt == EventsEnum.PLAYER_NOT_IN_ELEVATOR)
+        }
+        else if (evt == EventsEnum.PLAYER_NOT_IN_ELEVATOR)
         {
             this.gameObject.transform.localScale = _defaultScale;
             _isOnElevator = false;

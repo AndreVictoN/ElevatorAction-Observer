@@ -7,9 +7,11 @@ public class Enemy : MonoBehaviour, IObserver
     [SerializeField] private Door _spawnDoor;
     [SerializeField] private float _moveSpeed = 2f;
     [SerializeField] private int _floorNumber = 1;
+    private int gravity = 1;
     private bool _isActive = false;
     private Rigidbody2D _rigidbody;
     private Vector2 _direction;
+    private Transform _playerTransform; // Renomeado para seguir convenção de nomenclatura
 
     void Awake()
     {
@@ -20,29 +22,39 @@ public class Enemy : MonoBehaviour, IObserver
 
     void Start()
     {
+        // Corrigido: FindGameObjectWithTag (singular) para pegar apenas um jogador
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            _playerTransform = player.transform;
+        }
+        else
+        {
+            Debug.LogError("Nenhum objeto com tag 'Player' encontrado na cena!");
+        }
 
         ElevatorManager elevatorManager = FindObjectOfType<ElevatorManager>();
         if (elevatorManager != null)
         {
             elevatorManager.Subscribe(this);
         }
-
-
+        
         Deactivate();
     }
 
     void Update()
     {
-        if (_isActive)
+        if (_isActive && _playerTransform != null)
         {
             Move();
         }
     }
 
     private void Move()
-    {
-        _rigidbody.velocity = _direction * _moveSpeed;
-    }
+{
+    if (_playerTransform == null) return;
+    transform.position = Vector2.MoveTowards(transform.position, _playerTransform.position, _moveSpeed * Time.deltaTime);
+}
 
     public void Activate()
     {
@@ -68,10 +80,7 @@ public class Enemy : MonoBehaviour, IObserver
 
         if (elevatorFloor == _floorNumber && _spawnDoor.GetIsActive())
         {
-            if (Random.value > 0.4f) // 60% de chance de spawnar
-            {
                 Activate();
-            }
         }
         else
         {
@@ -81,9 +90,9 @@ public class Enemy : MonoBehaviour, IObserver
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Wall") || collision.gameObject.CompareTag("Enemy"))
+        if (collision.gameObject.CompareTag("Floor") || collision.gameObject.CompareTag("Enemy"))
         {
-            _direction *= -1; // Inverte a direção ao colidir com paredes ou outros inimigos
+           gravity *= 0;
         }
     }
 }

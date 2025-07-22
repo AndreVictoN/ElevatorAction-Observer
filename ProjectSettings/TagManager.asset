@@ -29,6 +29,7 @@ TagManager:
   - TWENTIETH_FLOOR
   - MoveDown
   - MoveUp
+  - Enemy
   layers:
   - Default
   - TransparentFX
