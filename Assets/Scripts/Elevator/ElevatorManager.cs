@@ -31,6 +31,7 @@ public class ElevatorManager : Subject
     {
         Subscribe(PlayerController.Instance);
         Subscribe(FindObjectsOfType<InvisibleWalls>());
+        Subscribe(FindObjectsOfType<EnemySpawner>());
         InsertIntoDictionary();
         Notify(EventsEnum.FIRST_FLOOR);
         _initialYPosition = transform.position.y;

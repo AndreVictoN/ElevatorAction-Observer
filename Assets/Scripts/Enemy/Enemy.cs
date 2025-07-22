@@ -2,27 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour, IObserver
+public class Enemy : MonoBehaviour
 {
     [SerializeField] private Door _spawnDoor;
     [SerializeField] private float _moveSpeed = 2f;
     [SerializeField] private int _floorNumber = 1;
     private int gravity = 1;
-    private bool _isActive = false;
     private Rigidbody2D _rigidbody;
     private Vector2 _direction;
-    private Transform _playerTransform; // Renomeado para seguir convenção de nomenclatura
+    private Transform _playerTransform;
 
     void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
-        GetComponent<SpriteRenderer>().color = Color.red;
-        transform.localScale = new Vector3(0.5f, 0.5f, 1f);
+        transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
+        Physics2D.IgnoreCollision(PlayerController.Instance.GetComponent<Collider2D>(), GetComponent<Collider2D>());
     }
 
     void Start()
     {
-        // Corrigido: FindGameObjectWithTag (singular) para pegar apenas um jogador
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
@@ -32,31 +30,23 @@ public class Enemy : MonoBehaviour, IObserver
         {
             Debug.LogError("Nenhum objeto com tag 'Player' encontrado na cena!");
         }
-
-        ElevatorManager elevatorManager = FindObjectOfType<ElevatorManager>();
-        if (elevatorManager != null)
-        {
-            elevatorManager.Subscribe(this);
-        }
-        
-        Deactivate();
     }
 
     void Update()
     {
-        if (_isActive && _playerTransform != null)
+        if (_playerTransform != null)
         {
             Move();
         }
     }
 
     private void Move()
-{
-    if (_playerTransform == null) return;
-    transform.position = Vector2.MoveTowards(transform.position, _playerTransform.position, _moveSpeed * Time.deltaTime);
-}
+    {
+        if (_playerTransform == null) return;
+        transform.position = Vector2.MoveTowards(transform.position, _playerTransform.position, _moveSpeed * Time.deltaTime);
+    }
 
-    public void Activate()
+    /*public void Activate()
     {
         _isActive = true;
         transform.position = _spawnDoor.transform.position;
@@ -68,25 +58,7 @@ public class Enemy : MonoBehaviour, IObserver
     {
         _isActive = false;
         gameObject.SetActive(false);
-    }
-
-    public void OnNotify(EventsEnum evt)
-    {
-        int elevatorFloor = 1;
-        
-        if (evt == EventsEnum.FIRST_FLOOR) elevatorFloor = 1;
-        else if (evt == EventsEnum.SECOND_FLOOR) elevatorFloor = 2;
-        else if (evt == EventsEnum.THIRD_FLOOR) elevatorFloor = 3;
-
-        if (elevatorFloor == _floorNumber && _spawnDoor.GetIsActive())
-        {
-                Activate();
-        }
-        else
-        {
-            Deactivate();
-        }
-    }
+    }*/
 
     void OnCollisionEnter2D(Collision2D collision)
     {

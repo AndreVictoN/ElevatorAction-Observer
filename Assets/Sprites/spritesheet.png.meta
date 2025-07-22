@@ -396,13 +396,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: spritesheet_23
+      name: enemy1
       rect:
         serializedVersion: 2
         x: 0
         y: 112
         width: 32
-        height: 48
+        height: 46
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -423,7 +423,7 @@ TextureImporter:
         x: 32
         y: 112
         width: 32
-        height: 48
+        height: 46
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -444,7 +444,7 @@ TextureImporter:
         x: 64
         y: 112
         width: 32
-        height: 48
+        height: 46
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -462,10 +462,10 @@ TextureImporter:
       name: spritesheet_26
       rect:
         serializedVersion: 2
-        x: 96
+        x: 100
         y: 112
-        width: 32
-        height: 48
+        width: 30
+        height: 46
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -501,13 +501,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: spritesheet_28
+      name: enemy2
       rect:
         serializedVersion: 2
         x: 0
         y: 64
         width: 32
-        height: 48
+        height: 46
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -522,13 +522,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: spritesheet_29
+      name: enemy3
       rect:
         serializedVersion: 2
         x: 32
         y: 64
         width: 32
-        height: 48
+        height: 46
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -543,13 +543,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: spritesheet_30
+      name: enemy4
       rect:
         serializedVersion: 2
         x: 64
         y: 64
         width: 32
-        height: 48
+        height: 46
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -564,13 +564,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: spritesheet_31
+      name: enemy5
       rect:
         serializedVersion: 2
         x: 96
         y: 64
         width: 32
-        height: 48
+        height: 46
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -585,13 +585,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: spritesheet_32
+      name: enemy6
       rect:
         serializedVersion: 2
         x: 128
         y: 64
         width: 32
-        height: 48
+        height: 46
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -618,6 +618,12 @@ TextureImporter:
     nameFileIdTable:
       door: 422337906
       elevator: -1758814477
+      enemy1: -1908700869
+      enemy2: -991225519
+      enemy3: -1940633868
+      enemy4: -2095310717
+      enemy5: 1352381521
+      enemy6: 1638568464
       floor: -297176967
       moveDown: 1403486747
       moveUp: 792808239
@@ -636,16 +642,10 @@ TextureImporter:
       spritesheet_20: -1346897954
       spritesheet_21: 1801691592
       spritesheet_22: -1888766876
-      spritesheet_23: -1908700869
       spritesheet_24: 1415090924
       spritesheet_25: 998241118
       spritesheet_26: -1530931487
-      spritesheet_28: -991225519
-      spritesheet_29: -1940633868
       spritesheet_3: -1936052955
-      spritesheet_30: -2095310717
-      spritesheet_31: 1352381521
-      spritesheet_32: 1638568464
       spritesheet_4: 262793942
       spritesheet_6: 714683796
       spritesheet_8: -1556423177
