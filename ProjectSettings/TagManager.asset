@@ -27,6 +27,8 @@ TagManager:
   - EIGHTEENTH_FLOOR
   - NINETEENTH_FLOOR
   - TWENTIETH_FLOOR
+  - MoveDown
+  - MoveUp
   layers:
   - Default
   - TransparentFX

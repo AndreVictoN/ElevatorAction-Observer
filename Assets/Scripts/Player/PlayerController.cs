@@ -8,7 +8,9 @@ using UnityEngine.Diagnostics;
 public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObserver
 {
     public Rigidbody2D myRigidBody;
+    public Animator myAnimator;
     
+    [SerializeField]private List<Teleporters> _teleporters = new();
     [SerializeField]private List<InvisibleWalls> _invisibleWalls;
     [SerializeField] private float _crouchingJumpForce;
     [SerializeField] private int _currentElevatorFloor;
@@ -17,6 +19,8 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     [SerializeField] private int _myCurrentFloor;
     [SerializeField] private float _baseSpeed;
     private string _tagElevator = "Elevator";
+    private Vector2 _defaultColliderOffset;
+    private Vector2 _defaultColliderSize;
     private string _tagFloor = "Floor";
     private bool _isOnElevator = false;
     public bool _canEnterDoor = false;
@@ -27,8 +31,15 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     public bool _inDoor = false;
     private float _currentSpeed;
     private Tween _currentTween;
+    [SerializeField]private bool _collidingDown;
+    [SerializeField]private bool _collidingUp;
+    private Teleporters _currentTeleporter;
+    private bool _isChangingFloor;
     private Door _currentDoor;
     private float _jumpForce;
+    private float _elevatorX;
+    private bool _isWalking;
+    private bool _isJumping;
 
     #region Observer
     public void OnNotify(EventsEnum evt)
@@ -62,9 +73,12 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
         if(evt == EventsEnum.PLAYER_IN_ELEVATOR)
         {
+            _elevatorX = 0.5f / this.transform.localScale.x;
+            this.gameObject.transform.localScale = new Vector2(_elevatorX, this.transform.localScale.y);
             _isOnElevator = true;
         }else if(evt == EventsEnum.PLAYER_NOT_IN_ELEVATOR)
         {
+            this.gameObject.transform.localScale = _defaultScale;
             _isOnElevator = false;
         }
 
@@ -79,6 +93,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     private void ResetSetup()
     {
+        _teleporters.AddRange(GameObject.FindObjectsOfType<Teleporters>());
         myRigidBody = this.gameObject.GetComponent<Rigidbody2D>();
         _defaultScale = this.gameObject.transform.localScale;
         _currentElevatorFloor = 1;
@@ -86,6 +101,10 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         _myCurrentFloor = 1;
         _isOnFloor = false;
         _isOnElevator = false;
+        _collidingDown = false;
+        _collidingUp = false;
+        _defaultColliderOffset = this.gameObject.GetComponent<BoxCollider2D>().offset;
+        _defaultColliderSize = this.gameObject.GetComponent<BoxCollider2D>().size;
     }
 
     void FixedUpdate()
@@ -97,6 +116,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     {
         HandleJump();
         HandleActions();
+        HandleAnimation();
         HandleDoorBehaviour();
         HandleInvisibleWallCollision();
     }
@@ -105,18 +125,45 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     {
         if(_isCrouching){_currentSpeed = _crouchingSpeed;}
         else{_currentSpeed = _baseSpeed;}
+        if(_isOnElevator)
+        {
+            float direction = Mathf.Sign(this.transform.localScale.x);
+            _elevatorX = direction * (0.75f / 0.6f);
+        }
 
-        if(Input.GetKey(KeyCode.RightArrow) && !_inDoor)
+        if(Input.GetKey(KeyCode.RightArrow) && !_inDoor && !_isChangingFloor)
         {
-            myRigidBody.velocity = new Vector2(_currentSpeed, myRigidBody.velocity.y);
-        }else if(Input.GetKey(KeyCode.LeftArrow) && !_inDoor)
+            if(!_isCrouching) {myRigidBody.velocity = new Vector2(_currentSpeed, myRigidBody.velocity.y); _isWalking = true;}
+            if(!_isOnElevator){this.gameObject.transform.localScale = new Vector2(0.75f, this.gameObject.transform.localScale.y);}
+            else{if(_elevatorX < 0)this.gameObject.transform.localScale = new Vector2(-_elevatorX, this.gameObject.transform.localScale.y);}
+        }else if(Input.GetKey(KeyCode.LeftArrow) && !_inDoor && !_isChangingFloor)
         {
-            myRigidBody.velocity = new Vector2(-_currentSpeed, myRigidBody.velocity.y);
+            if(!_isCrouching) {myRigidBody.velocity = new Vector2(-_currentSpeed, myRigidBody.velocity.y); _isWalking = true;}
+            if(!_isOnElevator){this.gameObject.transform.localScale = new Vector2(-0.75f, this.gameObject.transform.localScale.y);}
+            else{if(_elevatorX > 0)this.gameObject.transform.localScale = new Vector2(-_elevatorX, this.gameObject.transform.localScale.y);}
         }
         
         if(Input.GetKeyUp(KeyCode.RightArrow) || Input.GetKeyUp(KeyCode.LeftArrow))
         {
             myRigidBody.velocity = Vector2.zero;
+        }
+
+        if(myRigidBody.velocity == Vector2.zero) _isWalking = false;
+    }
+
+    private void HandleAnimation()
+    {
+        if(_isWalking && !_isJumping && !_isCrouching)
+        {
+            myAnimator.Play("samusRunning");
+        }else if (!_isJumping && !_isCrouching){
+            myAnimator.Play("samusIdle");
+        }else if(_isJumping && !_isCrouching)
+        {
+            myAnimator.Play("samusJump");
+        }else if(!_isJumping && !_isWalking && _isCrouching)
+        {
+            myAnimator.Play("samusCrouch");
         }
     }
 
@@ -128,6 +175,12 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         if(_isOnFloor && Input.GetKeyDown(KeyCode.UpArrow) && !_inDoor && !_isOnElevator)
         {
             myRigidBody.velocity = Vector2.up * _jumpForce;
+            _isJumping = true;
+        }
+
+        if(myRigidBody.velocity.y == 0)
+        {
+            _isJumping = false; 
         }
     }
 
@@ -139,12 +192,23 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             
             if(!_isCrouching)
             {
-                _currentTween = transform.DOScaleY(_defaultScale.y / 2, 0.1f);
+                this.gameObject.GetComponent<BoxCollider2D>().size = new Vector2(_defaultColliderSize.x, _defaultColliderSize.y * 0.5f);
+                this.gameObject.GetComponent<BoxCollider2D>().offset = new Vector2(_defaultColliderOffset.x, -0.43f);
                 _isCrouching = true;
             }else{
-                _currentTween = transform.DOScaleY(_defaultScale.y, 0.1f);
+                this.gameObject.GetComponent<BoxCollider2D>().size = _defaultColliderSize;
+                this.gameObject.GetComponent<BoxCollider2D>().offset = _defaultColliderOffset;
                 _isCrouching = false;
             }
+        }
+
+        if(_currentTeleporter != null && Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && (_collidingUp || _collidingDown))
+        {
+            _isChangingFloor = true;
+            this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
+            _currentTween?.Kill();
+            _currentTween = _currentTeleporter.MovePlayer(this.gameObject.GetComponent<PlayerController>(), this.gameObject.transform.position.y);
+            _currentTween.OnComplete(() => {this.gameObject.GetComponent<BoxCollider2D>().enabled = true; _isChangingFloor = false;});
         }
     }
 
@@ -206,6 +270,16 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         {
             _canEnterDoor = true;
             _currentDoor = collision.gameObject.GetComponent<Door>();
+        }else if(_teleporters.Contains(collision.gameObject.GetComponent<Teleporters>()))
+        {
+            if(collision.gameObject.GetComponent<Teleporters>() as UpTeleporter)
+            {
+                _collidingUp = true; _collidingDown = false;
+            }else if(collision.gameObject.GetComponent<Teleporters>() as DownTeleporter){
+                _collidingUp = false; _collidingDown = true;
+            }
+
+            _currentTeleporter = collision.gameObject.GetComponent<Teleporters>();
         }
     }
 
@@ -216,6 +290,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             if(_canEnterDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
             {
                 this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -1;
+                this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
                 _canEnterDoor = false;
                 _inDoor = true;
             }else if(_inDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
@@ -223,6 +298,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
                 _currentDoor.SetIsActive(false);
 
                 this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
+                this.gameObject.GetComponent<SpriteRenderer>().enabled = true;
                 _inDoor = false;
             }
         }
@@ -232,9 +308,14 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     {
         if(collision.CompareTag(_tagDoor))
         {
-            _canEnterDoor = true;
+            _canEnterDoor = false;
 
             _currentDoor = null;
+        }else if(_teleporters.Contains(collision.gameObject.GetComponent<Teleporters>()))
+        {
+            _collidingUp = false; _collidingDown = false;
+
+            _currentTeleporter = null;
         }
     }
     

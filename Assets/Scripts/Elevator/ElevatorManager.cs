@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Numerics;
 using DG.Tweening;
 using Unity.VisualScripting;
 using UnityEditor.PackageManager;
@@ -17,7 +16,7 @@ public class ElevatorManager : Subject
     private float _scaleY;
     [SerializeField]private bool _wentUp;
     private bool _isChangingFloor = false;
-    private float[] _movementConstant;
+    private int _movementConstant;
     private Dictionary<int, EventsEnum> _floorEventsKeys = new Dictionary<int, EventsEnum>();
     [SerializeField]private bool _playerIn;
     [SerializeField]private bool _playerOnCommand;
@@ -36,7 +35,7 @@ public class ElevatorManager : Subject
         Notify(EventsEnum.FIRST_FLOOR);
         _initialYPosition = transform.position.y;
         _scaleY = transform.localScale.y;
-        _movementConstant = new float[2] { 1.4f*_scaleY, 0.256f};
+        _movementConstant = 2;
         _playerIn = false;
     }
 
@@ -45,23 +44,6 @@ public class ElevatorManager : Subject
         HandleMovement();
         CleanAlreadyPassed();
         PlayerControls();
-        ManageConstant();
-    }
-
-    private void ManageConstant()
-    {
-        if (_currentFloor == 1)
-        {
-            _movementConstant[1] = 0.2546f;
-        }
-        else if (_currentFloor >= 2 && _currentFloor <= 11)
-        {
-          _movementConstant[1] = 0.254f;
-        }
-        else if (_currentFloor >= 12)
-        {
-            _movementConstant[1] += 0.253f;
-        }
     }
 
     private void CleanAlreadyPassed()
@@ -86,7 +68,7 @@ public class ElevatorManager : Subject
             
         for(int i = 1; i < Enum.GetNames(typeof(EventsEnum)).Length - 2; i++)
         {
-            if(Mathf.Approximately(y, _initialYPosition - (i * _movementConstant[0]) - (i * _movementConstant[1])))
+            if(Mathf.Approximately(y, _initialYPosition - (i * _movementConstant)))
             {
                 _currentFloor = i + 1;
                 if(!_alreadyPassed.Contains(_currentFloor)) _alreadyPassed.Add(_currentFloor);
@@ -136,12 +118,12 @@ public class ElevatorManager : Subject
         for(int i = 1; i <= 20; i++){
             if(currentFloor == i){
                 if(i == 1){
-                    _currentTween = transform.DOLocalMoveY(_initialYPosition - _movementConstant[0] - _movementConstant[1], 2f);
+                    _currentTween = transform.DOLocalMoveY(_initialYPosition - 2, 2f);
                     Notify(EventsEnum.SECOND_FLOOR);
                     _wentUp = false;
                     break;
                 }else if(i == 20){
-                    _currentTween = transform.DOLocalMoveY(_initialYPosition - 18*_movementConstant[0] - 18*_movementConstant[1], 2f);
+                    _currentTween = transform.DOLocalMoveY(_initialYPosition - 18*2, 2f);
                     Notify(EventsEnum.NINETEENTH_FLOOR);
                     _wentUp = true;
                     break;
@@ -152,7 +134,7 @@ public class ElevatorManager : Subject
                         Notify(EventsEnum.FIRST_FLOOR);
                         _wentUp = true;
                     }else{
-                        _currentTween = transform.DOLocalMoveY(_initialYPosition - 2*_movementConstant[0] - 2*_movementConstant[1], 2f);
+                        _currentTween = transform.DOLocalMoveY(_initialYPosition - 2*2, 2f);
                         Notify(EventsEnum.THIRD_FLOOR);
                         _wentUp = false;
                     }
@@ -160,11 +142,11 @@ public class ElevatorManager : Subject
                 }else{
                     if((PlayerController.Instance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.Instance.GetCurrentFloor() + 2)) || _wentUp || _playerIsGoingUp)
                     {
-                        _currentTween = transform.DOLocalMoveY(_initialYPosition - (currentFloor-2)*_movementConstant[0] - (currentFloor-2)*_movementConstant[1], 2f);
+                        _currentTween = transform.DOLocalMoveY(_initialYPosition - (currentFloor-2)*2, 2f);
                         Notify(_floorEventsKeys[currentFloor-1]);
                         _wentUp = true;
                     }else{
-                        _currentTween = transform.DOLocalMoveY(_initialYPosition - currentFloor*_movementConstant[0] - currentFloor*_movementConstant[1], 2f);
+                        _currentTween = transform.DOLocalMoveY(_initialYPosition - currentFloor*2, 2f);
                         Notify(_floorEventsKeys[currentFloor+1]);
                         _wentUp = false;
                     }

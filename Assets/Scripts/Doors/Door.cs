@@ -18,7 +18,7 @@ public class Door : MonoBehaviour
 
     public void ChangeColor()
     {
-        this.gameObject.GetComponent<SpriteRenderer>().color = new Color(0.0504628f, 0.1849264f, 0.3962264f, 1f);
+        this.gameObject.GetComponent<SpriteRenderer>().color = new Color(0.22082f, 0.5754717f, 0.122152f, 1f);
     }
 
     public void SetIsActive(bool isDoorActive)
