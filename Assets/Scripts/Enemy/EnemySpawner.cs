@@ -31,11 +31,12 @@ public class EnemySpawner : MonoBehaviour, IObserver
     public void OnNotify(EventsEnum evt)
     {
         if (this.gameObject.activeSelf == false) return;
-        if(evt == EventsEnum.PLAYER_IN_ELEVATOR || evt == EventsEnum.PLAYER_NOT_IN_ELEVATOR) return;
+        if (evt == EventsEnum.PLAYER_IN_ELEVATOR || evt == EventsEnum.PLAYER_NOT_IN_ELEVATOR) return;
+        if (GameManager.Instance.IsGamePaused()) return;
 
         if (_floorKeys[evt.ToString()] == _floorKeys[this.gameObject.tag] || _floorKeys[evt.ToString()] == _floorKeys[this.gameObject.tag] - 1 || _floorKeys[evt.ToString()] == _floorKeys[this.gameObject.tag] + 1)
         {
-            if(_enemiesSpawned.Count < 2)StartCoroutine(SpawnEnemy());
+            if (_enemiesSpawned.Count < 2) StartCoroutine(SpawnEnemy());
         }
     }
 

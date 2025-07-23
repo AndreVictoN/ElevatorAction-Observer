@@ -125,8 +125,10 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     private void HandleMovement()
     {
-        if(_isCrouching){_currentSpeed = _crouchingSpeed;}
-        else{_currentSpeed = _baseSpeed;}
+        if (GameManager.Instance.IsGamePaused() == true) return;
+
+        if (_isCrouching) { _currentSpeed = _crouchingSpeed; }
+        else { _currentSpeed = _baseSpeed; }
         if(_isOnElevator)
         {
             float direction = Mathf.Sign(this.transform.localScale.x);
@@ -155,15 +157,21 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     private void HandleAnimation()
     {
-        if(_isWalking && !_isJumping && !_isCrouching)
+        if (GameManager.Instance.IsGamePaused() == true) return;
+        
+        if (_isWalking && !_isJumping && !_isCrouching)
         {
             myAnimator.Play("samusRunning");
-        }else if (!_isJumping && !_isCrouching){
+        }
+        else if (!_isJumping && !_isCrouching)
+        {
             myAnimator.Play("samusIdle");
-        }else if(_isJumping && !_isCrouching)
+        }
+        else if (_isJumping && !_isCrouching)
         {
             myAnimator.Play("samusJump");
-        }else if(!_isJumping && !_isWalking && _isCrouching)
+        }
+        else if (!_isJumping && !_isWalking && _isCrouching)
         {
             myAnimator.Play("samusCrouch");
         }
@@ -171,8 +179,10 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     private void HandleJump()
     {
-        if(_isCrouching){_jumpForce = _crouchingJumpForce;}
-        else{_jumpForce = _baseJumpForce;}
+        if (GameManager.Instance.IsGamePaused() == true) return;
+
+        if (_isCrouching) { _jumpForce = _crouchingJumpForce; }
+        else { _jumpForce = _baseJumpForce; }
 
         if(_isOnFloor && Input.GetKeyDown(KeyCode.UpArrow) && !_inDoor && !_isOnElevator)
         {
@@ -188,16 +198,20 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     private void HandleActions()
     {
-        if(Input.GetKeyDown(KeyCode.DownArrow) && _isOnFloor && !_inDoor && !_isOnElevator)
+        if (GameManager.Instance.IsGamePaused() == true) return;
+        
+        if (Input.GetKeyDown(KeyCode.DownArrow) && _isOnFloor && !_inDoor && !_isOnElevator)
         {
             _currentTween?.Kill();
-            
-            if(!_isCrouching)
+
+            if (!_isCrouching)
             {
                 this.gameObject.GetComponent<BoxCollider2D>().size = new Vector2(_defaultColliderSize.x, _defaultColliderSize.y * 0.5f);
                 this.gameObject.GetComponent<BoxCollider2D>().offset = new Vector2(_defaultColliderOffset.x, -0.43f);
                 _isCrouching = true;
-            }else{
+            }
+            else
+            {
                 this.gameObject.GetComponent<BoxCollider2D>().size = _defaultColliderSize;
                 this.gameObject.GetComponent<BoxCollider2D>().offset = _defaultColliderOffset;
                 _isCrouching = false;

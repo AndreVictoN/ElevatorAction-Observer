@@ -57,7 +57,8 @@ public class ElevatorManager : Subject
 
     private void HandleMovement()
     {
-        if(_isChangingFloor) return;
+        if (GameManager.Instance.IsGamePaused() == true) return;
+        if (_isChangingFloor) return;
         float y = this.gameObject.transform.position.y;
 
         if(Mathf.Approximately(y, _initialYPosition))
@@ -82,7 +83,9 @@ public class ElevatorManager : Subject
 
     private void PlayerControls()
     {
-        if(_playerIn) PlayerController.Instance.SetCurrentFloor(_currentFloor);
+        if (GameManager.Instance.IsGamePaused() == true) return;
+        
+        if (_playerIn) PlayerController.Instance.SetCurrentFloor(_currentFloor);
 
         if (_playerIn && Input.GetKeyDown(KeyCode.UpArrow) && _currentFloor != 1)
         {
@@ -101,6 +104,8 @@ public class ElevatorManager : Subject
 
     public IEnumerator ChangeFloor(int currentFloor, bool isPlayer)
     {
+        if (GameManager.Instance.IsGamePaused() == true) return;
+        
         _isChangingFloor = true;
 
         if (!isPlayer) yield return new WaitForSeconds(3f);
