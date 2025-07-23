@@ -3,5 +3,5 @@ using UnityEngine;
 
 public abstract class Teleporters : MonoBehaviour
 {
-    public abstract Tween MovePlayer(PlayerController player, float playerPositionY);
+    public abstract Tween MovePlayer(GameObject player, float playerPositionY);
 }

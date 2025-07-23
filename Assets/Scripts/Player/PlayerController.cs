@@ -137,17 +137,17 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
         if(Input.GetKey(KeyCode.RightArrow) && !_inDoor && !_isChangingFloor)
         {
-            if(!_isCrouching) {myRigidBody.velocity = new Vector2(_currentSpeed, myRigidBody.velocity.y); _isWalking = true;}
+            if(!_isCrouching && !_isChangingFloor) {myRigidBody.velocity = new Vector2(_currentSpeed, myRigidBody.velocity.y); _isWalking = true;}
             if(!_isOnElevator){this.gameObject.transform.localScale = new Vector2(0.75f, this.gameObject.transform.localScale.y);}
             else{if(_elevatorX < 0)this.gameObject.transform.localScale = new Vector2(-_elevatorX, this.gameObject.transform.localScale.y);}
         }else if(Input.GetKey(KeyCode.LeftArrow) && !_inDoor && !_isChangingFloor)
         {
-            if(!_isCrouching) {myRigidBody.velocity = new Vector2(-_currentSpeed, myRigidBody.velocity.y); _isWalking = true;}
+            if(!_isCrouching && !_isChangingFloor) {myRigidBody.velocity = new Vector2(-_currentSpeed, myRigidBody.velocity.y); _isWalking = true;}
             if(!_isOnElevator){this.gameObject.transform.localScale = new Vector2(-0.75f, this.gameObject.transform.localScale.y);}
             else{if(_elevatorX > 0)this.gameObject.transform.localScale = new Vector2(-_elevatorX, this.gameObject.transform.localScale.y);}
         }
         
-        if(Input.GetKeyUp(KeyCode.RightArrow) || Input.GetKeyUp(KeyCode.LeftArrow))
+        if(Input.GetKeyUp(KeyCode.RightArrow) || Input.GetKeyUp(KeyCode.LeftArrow) || _isChangingFloor)
         {
             myRigidBody.velocity = Vector2.zero;
         }
@@ -221,9 +221,9 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         if(_currentTeleporter != null && Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && (_collidingUp || _collidingDown))
         {
             _isChangingFloor = true;
-            this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
             _currentTween?.Kill();
-            _currentTween = _currentTeleporter.MovePlayer(this.gameObject.GetComponent<PlayerController>(), this.gameObject.transform.position.y);
+            _currentTween = _currentTeleporter.MovePlayer(this.gameObject, this.gameObject.transform.localPosition.y);
+            this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
             _currentTween.OnComplete(() => {this.gameObject.GetComponent<BoxCollider2D>().enabled = true; _isChangingFloor = false;});
         }
     }

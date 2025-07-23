@@ -9,6 +9,7 @@ public class EnemySpawner : MonoBehaviour, IObserver
     [SerializeField] private List<GameObject> _enemiesSpawned = new();
     [SerializeField] private GameObject enemyPrefab;
     private GameObject _enemyInstance;
+    //public bool canSpawnEnemy = false;
 
     void Awake()
     {
@@ -33,6 +34,7 @@ public class EnemySpawner : MonoBehaviour, IObserver
         if (this.gameObject.activeSelf == false) return;
         if (evt == EventsEnum.PLAYER_IN_ELEVATOR || evt == EventsEnum.PLAYER_NOT_IN_ELEVATOR) return;
         if (GameManager.Instance.IsGamePaused()) return;
+        //if(!canSpawnEnemy) return;
 
         if (_floorKeys[evt.ToString()] == _floorKeys[this.gameObject.tag] || _floorKeys[evt.ToString()] == _floorKeys[this.gameObject.tag] - 1 || _floorKeys[evt.ToString()] == _floorKeys[this.gameObject.tag] + 1)
         {

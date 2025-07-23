@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class DownTeleporter : Teleporters
 {
-    public override Tween MovePlayer(PlayerController player, float playerPositionY)
+    public override Tween MovePlayer(GameObject player, float playerPositionY)
     {
-        return player.gameObject.transform.DOLocalMoveY(playerPositionY - 2, 1f);
+        return player.transform.DOLocalMoveY(playerPositionY - 2, 1f);
     }
 }

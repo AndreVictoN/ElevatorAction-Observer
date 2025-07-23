@@ -104,8 +104,6 @@ public class ElevatorManager : Subject
 
     public IEnumerator ChangeFloor(int currentFloor, bool isPlayer)
     {
-        if (GameManager.Instance.IsGamePaused() == true) return;
-        
         _isChangingFloor = true;
 
         if (!isPlayer) yield return new WaitForSeconds(3f);
@@ -122,6 +120,7 @@ public class ElevatorManager : Subject
     private void CheckCurrentFloor(int currentFloor)
     {
         for(int i = 1; i <= 20; i++){
+            if(currentFloor <= PlayerController.Instance.GetCurrentFloor() - 2) _wentUp = false;
             if(currentFloor == i){
                 if(i == 1){
                     _currentTween = transform.DOLocalMoveY(_initialYPosition - 2, 2f);
