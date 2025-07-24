@@ -1,39 +1,70 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] private Door _spawnDoor;
-    [SerializeField] private float _moveSpeed = 2f;
-    [SerializeField] private int _floorNumber = 1;
-    private int gravity = 1;
+    [Header("Movement Settings")]
+    [SerializeField] private float _moveSpeed = 0.5f;
+
+    [Header("Patrol Settings")]
+    [SerializeField] private Transform patrolPointA;
+    [SerializeField] private Transform patrolPointB;
+    private Transform _currentTarget;
     private Rigidbody2D _rigidbody;
-    private Vector2 _direction;
     private Transform _playerTransform;
+
+    private bool _canSeePlayer;
+    private Animator _myAnimator;
+    [SerializeField] private float _minShootDistance = 1f;
 
     void Awake()
     {
+        _myAnimator = this.gameObject.GetComponent<Animator>();
+        _canSeePlayer = false;
         _rigidbody = GetComponent<Rigidbody2D>();
         transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
-        Physics2D.IgnoreCollision(PlayerController.Instance.GetComponent<Collider2D>(), GetComponent<Collider2D>());
+        PatrolPointManager();
+
+        if (PlayerController.Instance != null)
+        {
+            Physics2D.IgnoreCollision(PlayerController.Instance.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);
+        }
+    }
+
+    private void PatrolPointManager()
+    {
+        Vector3 startPos = transform.position;
+
+        if (patrolPointA == null)
+        {
+            GameObject a = new GameObject("PatrolPointA");
+            if(SceneManager.GetActiveScene().name == "Level02") a.transform.position = transform.position + new Vector3(-1.94f, 0f, 0f);
+            else{a.transform.position = startPos + new Vector3(-1f, 0f, 0f);}
+            patrolPointA = a.transform;
+        }
+
+        if (patrolPointB == null)
+        {
+            GameObject b = new GameObject("PatrolPointB");
+            if(SceneManager.GetActiveScene().name == "Level02") b.transform.position = transform.position + new Vector3(1.94f, 0f, 0f);
+            else{b.transform.position = startPos + new Vector3(1f, 0f, 0f);}
+            patrolPointB = b.transform; 
+        }
+        
+        _currentTarget = patrolPointA;
     }
 
     void Start()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            _playerTransform = player.transform;
-        }
-        else
-        {
-            Debug.LogError("Nenhum objeto com tag 'Player' encontrado na cena!");
-        }
+        _playerTransform = PlayerController.Instance?.transform;
     }
 
     void Update()
     {
+        GameManager.Instance.GetEnemies().ForEach(e => {if(e.gameObject.activeSelf) Physics2D.IgnoreCollision(e.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);});
         if (_playerTransform != null)
         {
             Move();
@@ -42,29 +73,63 @@ public class Enemy : MonoBehaviour
 
     private void Move()
     {
-        if (_playerTransform == null) return;
-        transform.position = Vector2.MoveTowards(transform.position, _playerTransform.position, _moveSpeed * Time.deltaTime);
-    }
-
-    /*public void Activate()
-    {
-        _isActive = true;
-        transform.position = _spawnDoor.transform.position;
-        _direction = Random.value > 0.5f ? Vector2.left : Vector2.right;
-        gameObject.SetActive(true);
-    }
-
-    public void Deactivate()
-    {
-        _isActive = false;
-        gameObject.SetActive(false);
-    }*/
-
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Floor") || collision.gameObject.CompareTag("Enemy"))
+        if (_currentTarget.position.x < transform.position.x)
         {
-           gravity *= 0;
+            transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
+        else
+        {
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
+
+        if (_canSeePlayer)
+        {
+            float distance = Vector2.Distance(transform.position, _playerTransform.position);
+            if (distance > _minShootDistance)
+            {
+                transform.position = Vector2.MoveTowards(
+                    transform.position,
+                    _playerTransform.position,
+                    _moveSpeed * Time.deltaTime
+                );
+                _myAnimator.Play("Enemy");
+            }else{
+                _rigidbody.velocity = Vector2.zero;
+                _myAnimator.Play("enemyIdle");
+            }
+        }
+        else
+        {
+            if (_currentTarget == null)_currentTarget = patrolPointA;
+
+            transform.position = Vector2.MoveTowards(
+                transform.position,
+                _currentTarget.position,
+                _moveSpeed * Time.deltaTime
+            );
+
+            if (Vector2.Distance(transform.position, _currentTarget.position) < 0.05f)
+            {
+                _currentTarget = _currentTarget == patrolPointA ? patrolPointB : patrolPointA;
+            }
         }
     }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.gameObject.CompareTag("Player"))
+        {
+            _canSeePlayer = true;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        if(collision.gameObject.CompareTag("Player"))
+        {
+            _canSeePlayer = false;
+        }
+    }
+
+    public bool IsSeeingPlayer(){return _canSeePlayer;}
 }

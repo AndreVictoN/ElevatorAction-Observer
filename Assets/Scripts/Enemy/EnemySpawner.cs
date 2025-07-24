@@ -2,12 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class EnemySpawner : MonoBehaviour, IObserver
 {
     private Dictionary<string, int> _floorKeys = new Dictionary<string, int>();
     [SerializeField] private List<GameObject> _enemiesSpawned = new();
     [SerializeField] private GameObject enemyPrefab;
+    private Coroutine _currentCoroutine = null;
     private GameObject _enemyInstance;
     //public bool canSpawnEnemy = false;
 
@@ -42,11 +44,43 @@ public class EnemySpawner : MonoBehaviour, IObserver
         }
     }
 
+    void Update()
+    {
+        if(SceneManager.GetActiveScene().name == "Level02" && _currentCoroutine == null)
+        {
+            _currentCoroutine = StartCoroutine(SpawnEnemy());
+        }else if(SceneManager.GetActiveScene().name == "Level01" && PlayerController.Instance.GetCurrentFloor() > PlayerController.Instance.GetElevatorFloor() + 5 && _floorKeys[this.gameObject.tag] == PlayerController.Instance.GetCurrentFloor())
+        {
+            _currentCoroutine = StartCoroutine(SpawnEnemy());
+        }
+    }
+
     IEnumerator SpawnEnemy()
     {
-        yield return new WaitForSeconds(2f);
-        if(_enemiesSpawned.Count < 2) _enemyInstance = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
-        _enemiesSpawned.Add(_enemyInstance);
+        yield return new WaitForSeconds(6f);
+        if(_enemiesSpawned.Count < 2)
+        {
+            _enemyInstance = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+            _enemyInstance.transform.SetParent(null);
+            
+            Enemy enemyScript = _enemyInstance.GetComponent<Enemy>();
+            if(enemyScript != null)
+            {
+                GameManager.Instance.AddEnemy(enemyScript);
+            }
+
+            _enemiesSpawned.Add(_enemyInstance);
+        }
+
+        _currentCoroutine = null;
+    }
+
+    public void RemoveEnemy(GameObject enemy)
+    {
+        if (_enemiesSpawned.Contains(enemy))
+        {
+            _enemiesSpawned.Remove(enemy);
+        }
     }
 
     #region Floor Events Keys Dictionary

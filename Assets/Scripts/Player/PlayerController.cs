@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
-
+using UnityEngine.Assertions.Must;
 using UnityEngine.Diagnostics;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObserver
 {
@@ -17,10 +19,12 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     [SerializeField] private float _crouchingSpeed;
     [SerializeField] private float _baseJumpForce;
     [SerializeField] private int _myCurrentFloor;
+    private string _tagFinalDoor = "FinalDoor";
     [SerializeField] private float _baseSpeed;
     private string _tagElevator = "Elevator";
     private Vector2 _defaultColliderOffset;
     private Vector2 _defaultColliderSize;
+    public bool _canChangeLevel = false;
     private string _tagFloor = "Floor";
     private bool _isOnElevator = false;
     public bool _canEnterDoor = false;
@@ -41,6 +45,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     private bool _isWalking;
     private bool _isJumping;
     private float _playerHealth;
+    private bool _inElevator;
 
     #region Observer
     public void OnNotify(EventsEnum evt)
@@ -121,7 +126,21 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         HandleAnimation();
         HandleDoorBehaviour();
         HandleInvisibleWallCollision();
+
+        if(this.gameObject.transform.parent != null)
+        {
+            if(this.gameObject.transform.parent.gameObject.CompareTag("Elevator"))
+            {
+                _inElevator = true;
+            }else{
+                _inElevator = false;
+            }
+        }else{
+            _inElevator = false;
+        }
     }
+
+    public bool IsInElevtor(){return _inElevator;}
 
     private void HandleMovement()
     {
@@ -206,7 +225,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
             if (!_isCrouching)
             {
-                this.gameObject.GetComponent<BoxCollider2D>().size = new Vector2(_defaultColliderSize.x, _defaultColliderSize.y * 0.5f);
+                this.gameObject.GetComponent<BoxCollider2D>().size = new Vector2(_defaultColliderSize.x, _defaultColliderSize.y * 0.2f);
                 this.gameObject.GetComponent<BoxCollider2D>().offset = new Vector2(_defaultColliderOffset.x, -0.43f);
                 _isCrouching = true;
             }
@@ -226,11 +245,28 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
             _currentTween.OnComplete(() => {this.gameObject.GetComponent<BoxCollider2D>().enabled = true; _isChangingFloor = false;});
         }
+        
+        if(Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && _canChangeLevel)
+        {
+            this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -2;
+            this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
+            
+            StartCoroutine(ChangeLevel());
+        }
+    }
+
+    private IEnumerator ChangeLevel()
+    {
+        yield return new WaitForSeconds(0.3f);
+        if(SceneManager.GetActiveScene().name == "Level01") GameManager.Instance.GoToNextLevel();
+        else{GameManager.Instance.GameOver();};
     }
 
     private void HandleInvisibleWallCollision()
     {
-        if(_currentElevatorFloor < _myCurrentFloor || _currentElevatorFloor > _myCurrentFloor + 1 || _currentElevatorFloor == _myCurrentFloor)
+        if(_invisibleWalls.Count <= 0) return;
+
+        if(_currentElevatorFloor < _myCurrentFloor || _currentElevatorFloor == _myCurrentFloor + 1 || _currentElevatorFloor == _myCurrentFloor)
         {
             for(int i = _myCurrentFloor - 1; i < _invisibleWalls.Count; i++)
             {
@@ -246,7 +282,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.gameObject.CompareTag(_tagFloor))
+        if(collision.gameObject.CompareTag(_tagFloor) || collision.gameObject.CompareTag("FinalFloor"))
         {        
             _isOnFloor = true;
 
@@ -267,16 +303,21 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     private void CheckFloor(Collision2D col)
     {
-        float y = col.transform.parent.localPosition.y;
+        Transform parent = col.transform.parent;
+        string tag = null;
 
-        for (int i = 0; i < 20; i++)
+        if(parent != null)
         {
-            float targetY = 1.112f + i * -2.0f;
-            if (Mathf.Abs(y - targetY) < 0.01f)
+            foreach(Transform sibling in parent)
             {
-                _myCurrentFloor = i + 1;
-                break;
+                if(sibling.gameObject.name == "InvisibleWalls")
+                {
+                    tag = sibling.gameObject.tag;
+                    break;
+                }
             }
+
+            if(tag != null) _myCurrentFloor = GameManager.Instance.floorKeys[tag];
         }
     }
 
@@ -286,6 +327,9 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         {
             _canEnterDoor = true;
             _currentDoor = collision.gameObject.GetComponent<Door>();
+        }else if(collision.CompareTag(_tagFinalDoor))
+        {
+            _canChangeLevel = true;
         }else if(_teleporters.Contains(collision.gameObject.GetComponent<Teleporters>()))
         {
             if(collision.gameObject.GetComponent<Teleporters>() as UpTeleporter)
@@ -305,16 +349,19 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
         {
             if(_canEnterDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
             {
-                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -1;
+                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -2;
                 this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
+                GameManager.Instance.PlayAudio(1);
                 _canEnterDoor = false;
                 _inDoor = true;
             }else if(_inDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
             {
                 _currentDoor.SetIsActive(false);
 
-                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
+                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
                 this.gameObject.GetComponent<SpriteRenderer>().enabled = true;
+                GameManager.Instance.UpdateScore(500);
+                GameManager.Instance.PlayAudio(2);
                 _inDoor = false;
             }
         }
@@ -327,6 +374,9 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
             _canEnterDoor = false;
 
             _currentDoor = null;
+        }else if(collision.CompareTag(_tagFinalDoor))
+        {
+            _canChangeLevel = false;
         }else if(_teleporters.Contains(collision.gameObject.GetComponent<Teleporters>()))
         {
             _collidingUp = false; _collidingDown = false;
@@ -341,4 +391,7 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
     }
 
     public int GetCurrentFloor() { return _myCurrentFloor; }
+    public int GetElevatorFloor() { return _currentElevatorFloor; }
+    public bool IsCrouching(){ return _isCrouching; }
+    public bool IsInDoor(){ return _inDoor; }
 }

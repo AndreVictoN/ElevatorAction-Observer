@@ -2,10 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
-using Unity.VisualScripting;
-using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
 
 public class ElevatorManager : Subject
 {
@@ -172,13 +169,15 @@ public class ElevatorManager : Subject
     }
 
     void OnTriggerExit2D(Collider2D collision)
-    {
-        if(collision.gameObject == PlayerController.Instance.gameObject)
-        {
-            _playerIn = false;
-            _playerOnCommand = false;
-            Notify(EventsEnum.PLAYER_NOT_IN_ELEVATOR);
-            if(collision.gameObject.activeSelf == true && this.gameObject.activeSelf == true) StartCoroutine(Unparent(collision.gameObject));
+    {   
+        if(PlayerController.Instance.isActiveAndEnabled){
+            if(collision.gameObject == PlayerController.Instance.gameObject)
+            {
+                _playerIn = false;
+                _playerOnCommand = false;
+                Notify(EventsEnum.PLAYER_NOT_IN_ELEVATOR);
+                if(collision.gameObject.activeSelf == true && this.gameObject.activeSelf == true) StartCoroutine(Unparent(collision.gameObject));
+            }
         }
     }
 

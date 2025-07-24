@@ -186,13 +186,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: spritesheet_3
+      name: ProjectilePlayer
       rect:
         serializedVersion: 2
-        x: 98
-        y: 208
-        width: 33
-        height: 48
+        x: 111
+        y: 223
+        width: 17
+        height: 17
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -459,13 +459,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: spritesheet_26
+      name: ProjectileEnemy
       rect:
         serializedVersion: 2
-        x: 100
-        y: 112
-        width: 30
-        height: 46
+        x: 111
+        y: 127
+        width: 17
+        height: 17
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -605,6 +605,48 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: spritesheet_0
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 223
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b90e8dd5fc2c364ab61eb7330d45284
+      internalID: 1332602665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star
+      rect:
+        serializedVersion: 2
+        x: 366
+        y: 210
+        width: 4
+        height: 4
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b1ca142f8e7b8d48b32367e8e176f91
+      internalID: -276943411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -616,6 +658,8 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
+      ProjectileEnemy: -1530931487
+      ProjectilePlayer: -1936052955
       door: 422337906
       elevator: -1758814477
       enemy1: -1908700869
@@ -635,6 +679,7 @@ TextureImporter:
       samus6: 64661464
       samusCrouch: 1599615887
       samusJump: -1101559259
+      spritesheet_0: 1332602665
       spritesheet_16: 289659181
       spritesheet_17: 595780617
       spritesheet_18: 923101357
@@ -644,11 +689,10 @@ TextureImporter:
       spritesheet_22: -1888766876
       spritesheet_24: 1415090924
       spritesheet_25: 998241118
-      spritesheet_26: -1530931487
-      spritesheet_3: -1936052955
       spritesheet_4: 262793942
       spritesheet_6: 714683796
       spritesheet_8: -1556423177
+      star: -276943411
       wall: -1741534947
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0

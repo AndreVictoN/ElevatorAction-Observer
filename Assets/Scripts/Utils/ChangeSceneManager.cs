@@ -8,7 +8,7 @@ public class ChangeSceneManager : MonoBehaviour
 {
     public void ChangeScene(AudioSource source)
     {
-        StartCoroutine(Change("GameScene", source));
+        StartCoroutine(Change("Level01", source));
     }
 
     private IEnumerator Change(String sceneToLoad, AudioSource source)

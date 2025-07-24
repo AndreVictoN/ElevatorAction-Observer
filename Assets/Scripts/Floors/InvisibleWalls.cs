@@ -56,9 +56,12 @@ public class InvisibleWalls : MonoBehaviour, IObserver
     {
         List<Collider2D> colliders = new();
 
-        foreach(ElevatorManager elevator in _elevatorsToIgnore)
+        if(_elevatorsToIgnore.Count > 0)
         {
-            colliders.AddRange(elevator.GetComponents<BoxCollider2D>());
+            foreach(ElevatorManager elevator in _elevatorsToIgnore)
+            {
+                colliders.AddRange(elevator.GetComponents<BoxCollider2D>());
+            }
         }
 
         foreach(BoxCollider2D collider in colliders)

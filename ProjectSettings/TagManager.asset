@@ -30,6 +30,9 @@ TagManager:
   - MoveDown
   - MoveUp
   - Enemy
+  - FinalFloor
+  - FinalDoor
+  - EyeSight
   layers:
   - Default
   - TransparentFX
