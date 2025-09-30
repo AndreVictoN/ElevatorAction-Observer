@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cinemachine;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -15,11 +16,13 @@ public class GameManager : Core.Singleton.Singleton<GameManager>
     private List<EnemySpawner> _spawners = new();
     private List<AudioSource> _audioSources = new();
     private List<ElevatorManager> _elevators = new();
+    public CinemachineVirtualCamera cinemachineCamera;
     public Dictionary<string, int> floorKeys = new Dictionary<string, int>();
     private bool _pausedGame = false;
     private int _score = 0;
+    private bool _isPlayerSet;
 
-    public void AddEnemy(Enemy enemy){_enemies.Add(enemy);}
+    public void AddEnemy(Enemy enemy) { _enemies.Add(enemy); }
     public List<Enemy> GetEnemies(){return _enemies;}
 
     void Start()
@@ -39,13 +42,21 @@ public class GameManager : Core.Singleton.Singleton<GameManager>
 
     void Update()
     {
-        if(PlayerController.Instance.IsDestroyed() || PlayerController.Instance.transform.localPosition.y <= -40.5f)
+        if (!_isPlayerSet && PlayerController.NetInstance != null)
+        {
+            _isPlayerSet = true;
+            cinemachineCamera.Follow = PlayerController.NetInstance.transform;
+        }
+
+        if (PlayerController.NetInstance.IsDestroyed() || (_isPlayerSet && PlayerController.NetInstance.transform.localPosition.y <= -40.5f))
         {
             GameOver();
         }
 
         PauseManagement();
     }
+
+    public bool GetPlayerSet() { return _isPlayerSet; }
 
     public void GameOver()
     {

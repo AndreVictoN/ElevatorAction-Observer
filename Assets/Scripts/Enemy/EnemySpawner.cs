@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -46,10 +47,13 @@ public class EnemySpawner : MonoBehaviour, IObserver
 
     void Update()
     {
-        if(SceneManager.GetActiveScene().name == "Level02" && _currentCoroutine == null)
+        if (!GameManager.Instance.GetPlayerSet()) return;
+        
+        if (SceneManager.GetActiveScene().name == "Level02" && _currentCoroutine == null)
         {
             _currentCoroutine = StartCoroutine(SpawnEnemy());
-        }else if(SceneManager.GetActiveScene().name == "Level01" && PlayerController.Instance.GetCurrentFloor() > PlayerController.Instance.GetElevatorFloor() + 5 && _floorKeys[this.gameObject.tag] == PlayerController.Instance.GetCurrentFloor())
+        }
+        else if (SceneManager.GetActiveScene().name == "Level01" && PlayerController.NetInstance.GetCurrentFloor() > PlayerController.NetInstance.GetElevatorFloor() + 5 && _floorKeys[this.gameObject.tag] == PlayerController.NetInstance.GetCurrentFloor())
         {
             _currentCoroutine = StartCoroutine(SpawnEnemy());
         }

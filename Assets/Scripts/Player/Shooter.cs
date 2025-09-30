@@ -17,16 +17,16 @@ public class Shooter : MonoBehaviour
     
     void Update()
     {
-        if(this.gameObject.transform.parent.name == "Player")
+        if(this.gameObject.transform.parent.tag == "Player")
         {
-            if(!GameManager.Instance.IsGamePaused() && Input.GetKeyDown(KeyCode.Z) && !PlayerController.Instance.IsInDoor() && _timeToShoot == 0)
+            if(!GameManager.Instance.IsGamePaused() && Input.GetKeyDown(KeyCode.Z) && !PlayerController.NetInstance.IsInDoor() && _timeToShoot == 0)
             {
                 _instance = Instantiate(projectile, transform.position, Quaternion.identity);
                 GameManager.Instance.PlayAudio(3);
                 _timeToShoot = 0.5f;
             }
 
-            if(PlayerController.Instance.IsCrouching())
+            if(PlayerController.NetInstance.IsCrouching())
             {
                 this.transform.localPosition = new Vector2(this.transform.localPosition.x, -0.33f);
             }else{

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
-public class ElevatorManager : Subject
+public class ElevatorManager : NetworkSubject
 {
     private List<int> _alreadyPassed = new();
     private float _initialYPosition;
@@ -18,7 +18,13 @@ public class ElevatorManager : Subject
     [SerializeField]private bool _playerIn;
     [SerializeField]private bool _playerOnCommand;
     [SerializeField]private bool _playerIsGoingUp;
-    
+    private bool _playerIsSubscribed;
+
+    void Awake()
+    {
+        _playerIsSubscribed = false;
+    }
+
     void Start()
     {
         ResetSetup();
@@ -26,7 +32,8 @@ public class ElevatorManager : Subject
 
     private void ResetSetup()
     {
-        Subscribe(PlayerController.Instance);
+        if (GameManager.Instance.GetPlayerSet()){ SetPlayerSubscription(); }
+
         Subscribe(FindObjectsOfType<InvisibleWalls>());
         Subscribe(FindObjectsOfType<EnemySpawner>());
         InsertIntoDictionary();
@@ -39,14 +46,22 @@ public class ElevatorManager : Subject
 
     void Update()
     {
+        if (!_playerIsSubscribed && GameManager.Instance.GetPlayerSet()){ SetPlayerSubscription(); }
+        
         HandleMovement();
         CleanAlreadyPassed();
         PlayerControls();
     }
 
+    private void SetPlayerSubscription()
+    {
+        Subscribe(PlayerController.NetInstance);
+        _playerIsSubscribed = true;
+    }
+
     private void CleanAlreadyPassed()
     {
-        if (PlayerController.Instance.GetCurrentFloor() == _currentFloor)
+        if (GameManager.Instance.GetPlayerSet() && PlayerController.NetInstance.GetCurrentFloor() == _currentFloor)
         {
             _alreadyPassed.Clear();
         }
@@ -82,7 +97,7 @@ public class ElevatorManager : Subject
     {
         if (GameManager.Instance.IsGamePaused() == true) return;
         
-        if (_playerIn) PlayerController.Instance.SetCurrentFloor(_currentFloor);
+        if (GameManager.Instance.GetPlayerSet() && _playerIn) PlayerController.NetInstance.SetCurrentFloor(_currentFloor);
 
         if (_playerIn && Input.GetKeyDown(KeyCode.UpArrow) && _currentFloor != 1)
         {
@@ -116,40 +131,55 @@ public class ElevatorManager : Subject
 
     private void CheckCurrentFloor(int currentFloor)
     {
-        for(int i = 1; i <= 20; i++){
-            if(currentFloor <= PlayerController.Instance.GetCurrentFloor() - 2) _wentUp = false;
-            if(currentFloor == i){
-                if(i == 1){
+        if (!GameManager.Instance.GetPlayerSet()) return;
+
+        for (int i = 1; i <= 20; i++)
+        {
+            if (currentFloor <= PlayerController.NetInstance.GetCurrentFloor() - 2) _wentUp = false;
+            if (currentFloor == i)
+            {
+                if (i == 1)
+                {
                     _currentTween = transform.DOLocalMoveY(_initialYPosition - 2, 2f);
                     Notify(EventsEnum.SECOND_FLOOR);
                     _wentUp = false;
                     break;
-                }else if(i == 20){
-                    _currentTween = transform.DOLocalMoveY(_initialYPosition - 18*2, 2f);
+                }
+                else if (i == 20)
+                {
+                    _currentTween = transform.DOLocalMoveY(_initialYPosition - 18 * 2, 2f);
                     Notify(EventsEnum.NINETEENTH_FLOOR);
                     _wentUp = true;
                     break;
-                }else if (i == 2){
-                    if((PlayerController.Instance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.Instance.GetCurrentFloor() + 2)) || _wentUp || _playerIsGoingUp)
+                }
+                else if (i == 2)
+                {
+                    if ((PlayerController.NetInstance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.NetInstance.GetCurrentFloor() + 2)) || _wentUp || _playerIsGoingUp)
                     {
                         _currentTween = transform.DOLocalMoveY(_initialYPosition, 2f);
                         Notify(EventsEnum.FIRST_FLOOR);
                         _wentUp = true;
-                    }else{
-                        _currentTween = transform.DOLocalMoveY(_initialYPosition - 2*2, 2f);
+                    }
+                    else
+                    {
+                        _currentTween = transform.DOLocalMoveY(_initialYPosition - 2 * 2, 2f);
                         Notify(EventsEnum.THIRD_FLOOR);
                         _wentUp = false;
                     }
                     break;
-                }else{
-                    if((PlayerController.Instance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.Instance.GetCurrentFloor() + 2)) || _wentUp || _playerIsGoingUp)
+                }
+                else
+                {
+                    if ((PlayerController.NetInstance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.NetInstance.GetCurrentFloor() + 2)) || _wentUp || _playerIsGoingUp)
                     {
-                        _currentTween = transform.DOLocalMoveY(_initialYPosition - (currentFloor-2)*2, 2f);
-                        Notify(_floorEventsKeys[currentFloor-1]);
+                        _currentTween = transform.DOLocalMoveY(_initialYPosition - (currentFloor - 2) * 2, 2f);
+                        Notify(_floorEventsKeys[currentFloor - 1]);
                         _wentUp = true;
-                    }else{
-                        _currentTween = transform.DOLocalMoveY(_initialYPosition - currentFloor*2, 2f);
-                        Notify(_floorEventsKeys[currentFloor+1]);
+                    }
+                    else
+                    {
+                        _currentTween = transform.DOLocalMoveY(_initialYPosition - currentFloor * 2, 2f);
+                        Notify(_floorEventsKeys[currentFloor + 1]);
                         _wentUp = false;
                     }
                     break;
@@ -160,7 +190,7 @@ public class ElevatorManager : Subject
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.gameObject == PlayerController.Instance.gameObject)
+        if(collision.gameObject == PlayerController.NetInstance.gameObject)
         {
             _playerIn = true;
             Notify(EventsEnum.PLAYER_IN_ELEVATOR);
@@ -170,8 +200,8 @@ public class ElevatorManager : Subject
 
     void OnTriggerExit2D(Collider2D collision)
     {   
-        if(PlayerController.Instance.isActiveAndEnabled){
-            if(collision.gameObject == PlayerController.Instance.gameObject)
+        if(PlayerController.NetInstance.isActiveAndEnabled){
+            if(collision.gameObject == PlayerController.NetInstance.gameObject)
             {
                 _playerIn = false;
                 _playerOnCommand = false;

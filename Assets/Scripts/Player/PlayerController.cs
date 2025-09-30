@@ -7,7 +7,7 @@ using UnityEngine.Assertions.Must;
 using UnityEngine.Diagnostics;
 using UnityEngine.SceneManagement;
 
-public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObserver
+public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController>, IObserver
 {
     public Rigidbody2D myRigidBody;
     public Animator myAnimator;
@@ -100,6 +100,12 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     private void ResetSetup()
     {
+        if (_invisibleWalls.Count <= 0)
+        {
+            _invisibleWalls.Clear();
+            _invisibleWalls.AddRange(GameObject.FindObjectsOfType<InvisibleWalls>());
+        }
+        
         _teleporters.AddRange(GameObject.FindObjectsOfType<Teleporters>());
         myRigidBody = this.gameObject.GetComponent<Rigidbody2D>();
         _defaultScale = this.gameObject.transform.localScale;
@@ -116,11 +122,13 @@ public class PlayerController : Core.Singleton.Singleton<PlayerController>, IObs
 
     void FixedUpdate()
     {
+        if (!IsOwner) return;
         HandleMovement();
     }
 
     void Update()
     {
+        if (!IsOwner) return;
         HandleJump();
         HandleActions();
         HandleAnimation();

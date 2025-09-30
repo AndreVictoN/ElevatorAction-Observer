@@ -36,7 +36,7 @@ public class InvisibleWalls : MonoBehaviour, IObserver
                 if (this.gameObject.CompareTag(enumEvent.ToString())) { break; }
             }
             if (this == null || gameObject == null) return;
-            if (PlayerController.Instance.GetCurrentFloor() != floor) this.gameObject.GetComponent<BoxCollider2D>().enabled = true;
+            if (PlayerController.NetInstance.GetCurrentFloor() != floor) this.gameObject.GetComponent<BoxCollider2D>().enabled = true;
         }
     }
 

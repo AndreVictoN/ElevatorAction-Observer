@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class Enemy : MonoBehaviour
+public class Enemy : NetworkBehaviour
 {
     [Header("Movement Settings")]
     [SerializeField] private float _moveSpeed = 0.5f;
@@ -19,18 +20,21 @@ public class Enemy : MonoBehaviour
     private bool _canSeePlayer;
     private Animator _myAnimator;
     [SerializeField] private float _minShootDistance = 1f;
+    private bool _isPlayerSet;
 
     void Awake()
     {
+        _isPlayerSet = false;
         _myAnimator = this.gameObject.GetComponent<Animator>();
         _canSeePlayer = false;
         _rigidbody = GetComponent<Rigidbody2D>();
         transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
         PatrolPointManager();
 
-        if (PlayerController.Instance != null)
+        if (GameManager.Instance.GetPlayerSet())
         {
-            Physics2D.IgnoreCollision(PlayerController.Instance.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);
+            _isPlayerSet = true;
+            Physics2D.IgnoreCollision(PlayerController.NetInstance.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);
         }
     }
 
@@ -59,11 +63,18 @@ public class Enemy : MonoBehaviour
 
     void Start()
     {
-        _playerTransform = PlayerController.Instance?.transform;
+        if(GameManager.Instance.GetPlayerSet()) _playerTransform = PlayerController.NetInstance?.transform;
     }
 
     void Update()
     {
+        if (!_isPlayerSet && GameManager.Instance.GetPlayerSet())
+        {
+            _isPlayerSet = GameManager.Instance.GetPlayerSet();
+            Physics2D.IgnoreCollision(PlayerController.NetInstance.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);
+            _playerTransform = PlayerController.NetInstance?.transform;
+        }
+
         GameManager.Instance.GetEnemies().ForEach(e => {if(e.gameObject.activeSelf) Physics2D.IgnoreCollision(e.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);});
         if (_playerTransform != null)
         {
