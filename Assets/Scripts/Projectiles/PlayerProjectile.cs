@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using Unity.Netcode;
 
 public class PlayerProjectile : ProjectileBase
 {
@@ -9,10 +10,14 @@ public class PlayerProjectile : ProjectileBase
     {
         if(collision.gameObject.CompareTag(_tagEnemy) && !collision.gameObject.CompareTag("EyeSight"))
         {
-            Destroy(collision.gameObject);
+            if (NetworkManager.Singleton.IsServer) { collision.gameObject.GetComponent<NetworkObject>().Despawn(); }
+            else { Destroy(collision.gameObject); }
+
             GameManager.Instance.GetEnemies().Remove(collision.gameObject.GetComponent<Enemy>());
             GameManager.Instance.UpdateScore(100);
-            Destroy(this.gameObject);
+
+            if (NetworkManager.Singleton.IsServer) this.gameObject.GetComponent<NetworkObject>().Despawn();
+            else { Destroy(this.gameObject); }
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Core.Singleton
                 NetInstance = GetComponent<T>();
             }else
             {
-                Destroy(gameObject);
+                if (NetworkManager.Singleton == null) Destroy(gameObject);
             }
         }
     }

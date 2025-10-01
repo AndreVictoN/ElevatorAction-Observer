@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class ProjectileBase : MonoBehaviour
+public class ProjectileBase : NetworkBehaviour
 {
     protected string _tagPlayer = "Player";
     [SerializeField] protected float speed;
@@ -25,7 +26,9 @@ public class ProjectileBase : MonoBehaviour
     IEnumerator DestroyCoroutine()
     {
         yield return new WaitForSeconds(1f);
-        Destroy(this.gameObject);
+
+        if (NetworkManager.Singleton.IsServer) { this.gameObject.GetComponent<NetworkObject>().Despawn(); }
+        else { Destroy(this.gameObject); }
     }
 
     void Update()
