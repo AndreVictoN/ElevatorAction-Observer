@@ -10,14 +10,16 @@ public class PlayerProjectile : ProjectileBase
     {
         if(collision.gameObject.CompareTag(_tagEnemy) && !collision.gameObject.CompareTag("EyeSight"))
         {
-            if (NetworkManager.Singleton.IsServer) { collision.gameObject.GetComponent<NetworkObject>().Despawn(); }
-            else { Destroy(collision.gameObject); }
+            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
 
-            GameManager.Instance.GetEnemies().Remove(collision.gameObject.GetComponent<Enemy>());
+            if (IsClient && enemy.gameObject.GetComponent<NetworkObject>().IsSpawned) { enemy.RequestDestroy(); }
+            else if (IsServer && enemy.gameObject.GetComponent<NetworkObject>().IsSpawned) { enemy.gameObject.GetComponent<NetworkObject>().Despawn(); }
+            else { Destroy(enemy.gameObject); }
+
+            GameManager.Instance.GetEnemies().Remove(enemy);
             GameManager.Instance.UpdateScore(100);
 
-            if (NetworkManager.Singleton.IsServer) this.gameObject.GetComponent<NetworkObject>().Despawn();
-            else { Destroy(this.gameObject); }
+            DestroyThisGameObject();
         }
     }
 }

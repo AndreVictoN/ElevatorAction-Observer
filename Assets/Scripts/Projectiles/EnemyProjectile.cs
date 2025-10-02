@@ -10,14 +10,16 @@ public class EnemyProjectile : ProjectileBase
     {
         if (collision.gameObject.CompareTag(_tagPlayer))
         {
-            if (!collision.GetComponent<PlayerController>().IsInDoor())
+            PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+
+            if (!player.IsInDoor())
             {
-                if (NetworkManager.Singleton.IsServer) { collision.gameObject.GetComponent<NetworkObject>().Despawn(); }
-                else { Destroy(collision.gameObject); }
+                if (IsClient && player.gameObject.GetComponent<NetworkObject>().IsSpawned) { player.RequestDestroy(); }
+                else if(IsServer && player.gameObject.GetComponent<NetworkObject>().IsSpawned) { player.gameObject.GetComponent<NetworkObject>().Despawn(); }
+                else { Destroy(player.gameObject); }
             }
 
-            if (!NetworkManager.Singleton.IsServer) Destroy(this.gameObject);
-            else this.gameObject.GetComponent<NetworkObject>().Despawn();
+            DestroyThisGameObject();
         }
     }
 }

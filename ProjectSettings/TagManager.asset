@@ -33,6 +33,8 @@ TagManager:
   - FinalFloor
   - FinalDoor
   - EyeSight
+  - EnemyProjectile
+  - PlayerProjectile
   layers:
   - Default
   - TransparentFX

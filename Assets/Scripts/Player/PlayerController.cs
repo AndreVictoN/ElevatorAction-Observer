@@ -2,12 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Assertions.Must;
 using UnityEngine.Diagnostics;
 using UnityEngine.SceneManagement;
 
-public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController>, IObserver
+public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController>, IObserver, IDestroyableObjects
 {
     public Rigidbody2D myRigidBody;
     public Animator myAnimator;
@@ -397,6 +398,18 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
     {
         _myCurrentFloor = floor;
     }
+
+    public void RequestDestroy(){ RequestDestroyThisServerRpc(); }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestDestroyThisServerRpc()
+    {
+        if (NetworkObject != null && NetworkObject.IsSpawned)
+        {
+            NetworkObject.Despawn();
+        }
+    }
+
 
     public int GetCurrentFloor() { return _myCurrentFloor; }
     public int GetElevatorFloor() { return _currentElevatorFloor; }

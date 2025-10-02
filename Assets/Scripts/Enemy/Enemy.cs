@@ -5,7 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class Enemy : NetworkBehaviour
+public class Enemy : NetworkBehaviour, IDestroyableObjects
 {
     [Header("Movement Settings")]
     [SerializeField] private float _moveSpeed = 0.5f;
@@ -142,5 +142,16 @@ public class Enemy : NetworkBehaviour
         }
     }
 
-    public bool IsSeeingPlayer(){return _canSeePlayer;}
+    public void RequestDestroy(){ RequestDestroyThisServerRpc(); }
+
+    [ServerRpc]
+    private void RequestDestroyThisServerRpc()
+    {
+        if (NetworkObject != null && NetworkObject.IsSpawned)
+        {
+            NetworkObject.Despawn();
+        }
+    }
+
+    public bool IsSeeingPlayer() { return _canSeePlayer; }
 }
