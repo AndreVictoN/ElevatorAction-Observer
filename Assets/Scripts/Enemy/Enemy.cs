@@ -61,10 +61,18 @@ public class Enemy : NetworkBehaviour, IDestroyableObjects
         _currentTarget = patrolPointA;
     }
 
-    void Start()
+    public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
+
         if(GameManager.Instance.GetPlayerSet()) _playerTransform = PlayerController.NetInstance?.transform;
     }
+
+
+    /*void Start()
+    {
+        if(GameManager.Instance.GetPlayerSet()) _playerTransform = PlayerController.NetInstance?.transform;
+    }*/
 
     void Update()
     {

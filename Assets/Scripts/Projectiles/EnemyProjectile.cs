@@ -14,8 +14,8 @@ public class EnemyProjectile : ProjectileBase
 
             if (!player.IsInDoor())
             {
-                if (IsClient && player.gameObject.GetComponent<NetworkObject>().IsSpawned) { player.RequestDestroy(); }
-                else if(IsServer && player.gameObject.GetComponent<NetworkObject>().IsSpawned) { player.gameObject.GetComponent<NetworkObject>().Despawn(); }
+                if ((IsClient && !IsHost) && player.gameObject.GetComponent<NetworkObject>().IsSpawned) { player.RequestDestroy(); }
+                else if(IsHost && player.gameObject.GetComponent<NetworkObject>().IsSpawned) { player.gameObject.GetComponent<NetworkObject>().Despawn(); }
                 else { Destroy(player.gameObject); }
             }
 

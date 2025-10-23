@@ -68,7 +68,7 @@ public class Shooter : NetworkBehaviour
     private void CheckSpawnInServer()
     {
         if (IsHost) { SpawnProjectile(transform.position); }
-        else if (IsClient) { RequestSpawnThisServerRpc(transform.position); }
+        else if (IsClient && !IsHost) { RequestSpawnThisServerRpc(transform.position); }
         else { Instantiate(projectile, transform.position, Quaternion.identity); }
     }
 
@@ -84,10 +84,13 @@ public class Shooter : NetworkBehaviour
         projectileInstance = Instantiate(projectile, position, Quaternion.identity);
         projectileInstance.GetComponent<NetworkObject>().Spawn(true);
 
+        if (projectileInstance.CompareTag("PlayerProjectile")) projectileInstance.GetComponent<PlayerProjectile>().SetMySpawner(this.transform.parent.gameObject);
+        
         if (projectileInstance.CompareTag("EnemyProjectile"))
         {
-            projectileInstance.transform.SetParent(transform.parent);
-            projectileInstance.GetComponent<ProjectileBase>().SetMyParent(transform.parent.gameObject);
+            projectileInstance.GetComponent<ProjectileBase>().SetMyParent(this.transform.parent.gameObject);
+            projectileInstance.GetComponent<NetworkObject>().TrySetParent(this.transform.parent.gameObject, true);
+            //projectileInstance.transform.SetParent(transform.parent);
         }
     }
 }

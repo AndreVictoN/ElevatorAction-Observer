@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using Unity.VisualScripting;
 
 public class ProjectileBase : NetworkBehaviour, IDestroyableObjects
 {
@@ -12,6 +13,7 @@ public class ProjectileBase : NetworkBehaviour, IDestroyableObjects
     protected int multiplier;
     private GameObject _myParent;
     private bool _isMoving;
+    protected GameObject _mySpawner;
 
     void Awake()
     {
@@ -19,18 +21,32 @@ public class ProjectileBase : NetworkBehaviour, IDestroyableObjects
         _myRigidBody = this.gameObject.GetComponent<Rigidbody2D>();
     }
 
-    void Start()
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        if(this.gameObject.CompareTag("PlayerProjectile")) this.gameObject.transform.SetParent(null);
+        StartCoroutine(DestroyCoroutine());
+    }
+
+    private void OnTransformParentChanged()
+    {
+        if(_myParent == null && this.gameObject.CompareTag("EnemyProjectile") && IsHost) { _myParent = this.transform.parent.gameObject; }
+        this.gameObject.GetComponent<NetworkObject>().TryRemoveParent(true);
+    }
+
+    /*void Start()
     {
         //if (transform.parent != null && transform.parent.parent != null)
         //{
-        //SetMovement(transform/*.parent.parent*/.localScale.x);
+        //SetMovement(transform/*.parent.parent*//*.localScale.x);
         //}
 
         if (this.gameObject.CompareTag("EnemyProjectile") && IsHost) { _myParent = this.transform.parent.gameObject; }
 
         this.gameObject.transform.SetParent(null);
         StartCoroutine(DestroyCoroutine());
-    }
+    }*/
 
     IEnumerator DestroyCoroutine()
     {
@@ -41,11 +57,11 @@ public class ProjectileBase : NetworkBehaviour, IDestroyableObjects
 
     protected void DestroyThisGameObject()
     {
-        if (IsServer)
+        if (IsHost)
         {
             if (this.gameObject.GetComponent<NetworkObject>().IsSpawned) GetComponent<NetworkObject>().Despawn();
         }
-        else if (IsClient && !IsServer)
+        else if (IsClient && !IsHost)
         {
             RequestDestroyThisServerRpc();
         }
@@ -83,13 +99,15 @@ public class ProjectileBase : NetworkBehaviour, IDestroyableObjects
 
         if (this.gameObject.CompareTag("PlayerProjectile"))
         {
-            if ((IsHost || IsClient) && PlayerController.NetInstance.IsSpawned) localScaleX = PlayerController.NetInstance.transform.localScale.x;
-            else if ((!IsHost && !IsClient) && PlayerController.NetInstance != null) localScaleX = PlayerController.NetInstance.transform.localScale.x;
+            if (_mySpawner == null) return;
+
+            if ((IsHost || (IsClient && !IsHost)) && _mySpawner.GetComponent<PlayerController>().IsSpawned) localScaleX = _mySpawner.transform.localScale.x;
+            else if (!IsHost && !IsClient && PlayerController.NetInstance != null) localScaleX = PlayerController.NetInstance.transform.localScale.x;
         }
         else if (this.gameObject.CompareTag("EnemyProjectile"))
         {
             if (_myParent == null) return;
-            if ((IsHost || IsClient) && _myParent.GetComponent<NetworkObject>().IsSpawned) localScaleX = _myParent.transform.localScale.x;
+            if ((IsHost || (IsClient && !IsHost)) && _myParent.GetComponent<NetworkObject>().IsSpawned) localScaleX = _myParent.transform.localScale.x;
             else if (!IsHost && !IsClient && transform.parent.gameObject != null) localScaleX = _myParent.transform.localScale.x;
         }
 

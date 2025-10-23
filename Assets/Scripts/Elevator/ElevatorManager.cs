@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using Unity.Netcode;
 
 public class ElevatorManager : NetworkSubject
 {
@@ -199,14 +200,15 @@ public class ElevatorManager : NetworkSubject
     }
 
     void OnTriggerExit2D(Collider2D collision)
-    {   
-        if(PlayerController.NetInstance.isActiveAndEnabled){
-            if(collision.gameObject == PlayerController.NetInstance.gameObject)
+    {
+        if (PlayerController.NetInstance.isActiveAndEnabled)
+        {
+            if (collision.gameObject.CompareTag("Player"))
             {
                 _playerIn = false;
                 _playerOnCommand = false;
                 Notify(EventsEnum.PLAYER_NOT_IN_ELEVATOR);
-                if(collision.gameObject.activeSelf == true && this.gameObject.activeSelf == true) StartCoroutine(Unparent(collision.gameObject));
+                if (collision.gameObject.activeSelf == true && this.gameObject.activeSelf == true) StartCoroutine(Unparent(collision.gameObject));
             }
         }
     }
@@ -214,8 +216,9 @@ public class ElevatorManager : NetworkSubject
     private IEnumerator Unparent(GameObject gO)
     {
         yield return null;
-        gO.transform.SetParent(null);
+        gO.GetComponent<NetworkObject>().TryRemoveParent();
     }
+
 
     #region Floor Events Keys Dictionary
     private void InsertIntoDictionary()

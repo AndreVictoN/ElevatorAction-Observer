@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Core.Singleton
 {
-    public class NetworkSingleton<T> : NetworkBehaviour where T : MonoBehaviour
+    public class NetworkSingleton<T> : NetworkBehaviour where T : NetworkBehaviour
     {
         public static T NetInstance;
 

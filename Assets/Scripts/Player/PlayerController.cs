@@ -94,10 +94,17 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
     }
     #endregion
 
-    void Start()
+    public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
+
         ResetSetup();
     }
+    
+    /*void Start()
+    {
+        ResetSetup();
+    }*/
 
     private void ResetSetup()
     {
@@ -106,7 +113,7 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
             _invisibleWalls.Clear();
             _invisibleWalls.AddRange(GameObject.FindObjectsOfType<InvisibleWalls>());
         }
-        
+
         _teleporters.AddRange(GameObject.FindObjectsOfType<Teleporters>());
         myRigidBody = this.gameObject.GetComponent<Rigidbody2D>();
         _defaultScale = this.gameObject.transform.localScale;
@@ -414,5 +421,12 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
     public int GetCurrentFloor() { return _myCurrentFloor; }
     public int GetElevatorFloor() { return _currentElevatorFloor; }
     public bool IsCrouching(){ return _isCrouching; }
-    public bool IsInDoor(){ return _inDoor; }
+    public bool IsInDoor() { return _inDoor; }
+
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+
+        NetworkManager.Singleton.Shutdown();
+    }
 }
