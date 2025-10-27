@@ -15,8 +15,10 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
     
     [SerializeField]private List<Teleporters> _teleporters = new();
     [SerializeField]private List<InvisibleWalls> _invisibleWalls;
+    [SerializeField] private BoxCollider2D _myBoxCollider;
     [SerializeField] private float _crouchingJumpForce;
     [SerializeField] private int _currentElevatorFloor;
+    [SerializeField] private SpriteRenderer _mySprite;
     [SerializeField] private float _crouchingSpeed;
     [SerializeField] private float _baseJumpForce;
     [SerializeField] private int _myCurrentFloor;
@@ -100,7 +102,7 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
 
         ResetSetup();
     }
-    
+
     /*void Start()
     {
         ResetSetup();
@@ -114,6 +116,11 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
             _invisibleWalls.AddRange(GameObject.FindObjectsOfType<InvisibleWalls>());
         }
 
+        if (GameObject.FindGameObjectsWithTag("Player").Length > 1)
+        {
+            ChangeThisColorToPlayerTwo();
+        }
+
         _teleporters.AddRange(GameObject.FindObjectsOfType<Teleporters>());
         myRigidBody = this.gameObject.GetComponent<Rigidbody2D>();
         _defaultScale = this.gameObject.transform.localScale;
@@ -124,8 +131,25 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
         _isOnElevator = false;
         _collidingDown = false;
         _collidingUp = false;
-        _defaultColliderOffset = this.gameObject.GetComponent<BoxCollider2D>().offset;
-        _defaultColliderSize = this.gameObject.GetComponent<BoxCollider2D>().size;
+        _defaultColliderOffset = _myBoxCollider.offset;
+        _defaultColliderSize = _myBoxCollider.size;
+    }
+
+    private void ChangeThisColorToPlayerTwo()
+    {
+        ChangeThisColorToPlayerTwoServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ChangeThisColorToPlayerTwoServerRpc()
+    {
+        ChangeThisColorToPlayerTwoClientRpc();
+    }
+
+    [ClientRpc]
+    private void ChangeThisColorToPlayerTwoClientRpc()
+    {
+        _mySprite.color = new Color(1f, 0.1462264f, 0.9093413f, 1f);
     }
 
     void FixedUpdate()
@@ -234,40 +258,68 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
     private void HandleActions()
     {
         if (GameManager.Instance.IsGamePaused() == true) return;
-        
+
         if (Input.GetKeyDown(KeyCode.DownArrow) && _isOnFloor && !_inDoor && !_isOnElevator)
         {
             _currentTween?.Kill();
 
+            ChangeBoxCollider(_isCrouching);
             if (!_isCrouching)
             {
-                this.gameObject.GetComponent<BoxCollider2D>().size = new Vector2(_defaultColliderSize.x, _defaultColliderSize.y * 0.2f);
-                this.gameObject.GetComponent<BoxCollider2D>().offset = new Vector2(_defaultColliderOffset.x, -0.43f);
                 _isCrouching = true;
             }
             else
             {
-                this.gameObject.GetComponent<BoxCollider2D>().size = _defaultColliderSize;
-                this.gameObject.GetComponent<BoxCollider2D>().offset = _defaultColliderOffset;
                 _isCrouching = false;
             }
         }
 
-        if(_currentTeleporter != null && Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && (_collidingUp || _collidingDown))
+        if (_currentTeleporter != null && Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && (_collidingUp || _collidingDown))
         {
             _isChangingFloor = true;
             _currentTween?.Kill();
             _currentTween = _currentTeleporter.MovePlayer(this.gameObject, this.gameObject.transform.localPosition.y);
-            this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
-            _currentTween.OnComplete(() => {this.gameObject.GetComponent<BoxCollider2D>().enabled = true; _isChangingFloor = false;});
+            _myBoxCollider.enabled = false;
+            _currentTween.OnComplete(() => { _myBoxCollider.enabled = true; _isChangingFloor = false; });
         }
-        
-        if(Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && _canChangeLevel)
+
+        if (Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && _canChangeLevel)
         {
             this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -2;
             this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
-            
+
             StartCoroutine(ChangeLevel());
+        }
+    }
+
+    private void ChangeBoxCollider(bool value)
+    {
+        if (!IsServer && !IsClient && !IsHost)
+        {
+            if (value) { _myBoxCollider.size = _defaultColliderSize; _myBoxCollider.offset = _defaultColliderOffset; }
+            else { _myBoxCollider.size = new Vector2(_defaultColliderSize.x, _defaultColliderSize.y * 0.2f); _myBoxCollider.offset = new Vector2(_defaultColliderOffset.x, -0.43f); }
+        }
+        else { ChangeBoxColliderServerRpc(value); }
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    private void ChangeBoxColliderServerRpc(bool isCrouching)
+    {
+        ChangeBoxColliderClientRpc(isCrouching);
+    }
+
+    [ClientRpc]
+    private void ChangeBoxColliderClientRpc(bool isCrouching)
+    {
+        if(isCrouching)
+        {
+            _myBoxCollider.size = _defaultColliderSize;
+            _myBoxCollider.offset = _defaultColliderOffset;
+        }
+        else
+        {
+            _myBoxCollider.size = new Vector2(_defaultColliderSize.x, _defaultColliderSize.y * 0.2f);
+            _myBoxCollider.offset = new Vector2(_defaultColliderOffset.x, -0.43f);
         }
     }
 
@@ -286,12 +338,12 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
         {
             for(int i = _myCurrentFloor - 1; i < _invisibleWalls.Count; i++)
             {
-                Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>(), true);
+                Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), _myBoxCollider, true);
             }
         }else{
             for(int i = _myCurrentFloor - 1; i < _invisibleWalls.Count; i++)
             {
-                Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), this.gameObject.GetComponent<BoxCollider2D>(), false);
+                Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), _myBoxCollider, false);
             }
         }
     }
@@ -373,10 +425,12 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
             }else if(_inDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
             {
                 _currentDoor.SetIsActive(false);
+                _currentDoor.ChangeColor();
+                //GameObject.FindGameObjectWithTag(_tagElevator).GetComponent<ElevatorManager>().Notify(EventsEnum.CHANGE_DOOR_STATE);
 
                 this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
                 this.gameObject.GetComponent<SpriteRenderer>().enabled = true;
-                GameManager.Instance.UpdateScore(500);
+                GameObject.FindGameObjectWithTag("ScoreManager").GetComponent<ScoreManager>().UpdateScore(500);
                 GameManager.Instance.PlayAudio(2);
                 _inDoor = false;
             }

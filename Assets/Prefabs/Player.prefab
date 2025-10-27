@@ -161,7 +161,7 @@ MonoBehaviour:
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
+  AllowOwnerToParent: 1
 --- !u!114 &6554845233176314417
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -178,8 +178,10 @@ MonoBehaviour:
   myAnimator: {fileID: 1522577742232524695}
   _teleporters: []
   _invisibleWalls: []
+  _myBoxCollider: {fileID: 6741008257430027329}
   _crouchingJumpForce: 2.5
   _currentElevatorFloor: 0
+  _mySprite: {fileID: 7502446723017294956}
   _crouchingSpeed: 1.5
   _baseJumpForce: 4
   _myCurrentFloor: 0

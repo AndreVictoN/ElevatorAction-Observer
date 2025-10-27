@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
 using TMPro;
+using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameManager : Core.Singleton.Singleton<GameManager>
 {
-    public TextMeshProUGUI score;
     public GameObject pausedScreen;
     private List<Enemy> _enemies = new();
     public List<AudioClip> audioClips = new();
@@ -19,7 +19,6 @@ public class GameManager : Core.Singleton.Singleton<GameManager>
     public CinemachineVirtualCamera cinemachineCamera;
     public Dictionary<string, int> floorKeys = new Dictionary<string, int>();
     private bool _pausedGame = false;
-    private int _score = 0;
     private bool _isPlayerSet;
 
     public void AddEnemy(Enemy enemy) { _enemies.Add(enemy); }
@@ -31,21 +30,16 @@ public class GameManager : Core.Singleton.Singleton<GameManager>
         _spawners.AddRange(GameObject.FindObjectsOfType<EnemySpawner>());
         _audioSources.AddRange(GameObject.FindObjectsOfType<AudioSource>());
         _elevators.AddRange(GameObject.FindObjectsOfType<ElevatorManager>());
-        score.text = "Score: 0";
-    }
-
-    public void UpdateScore(int sum)
-    {
-        _score += sum;
-        score.text = "Score: " + _score;
     }
 
     void Update()
     {
         if (!_isPlayerSet && PlayerController.NetInstance != null)
         {
+            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
             _isPlayerSet = true;
-            cinemachineCamera.Follow = PlayerController.NetInstance.transform;
+            if (players.Length > 1) { cinemachineCamera.Follow = players[1].transform; GameObject.FindGameObjectWithTag("ScoreManager").GetComponent<ScoreManager>().CheckPlayerTwo(); }
+            else { cinemachineCamera.Follow = PlayerController.NetInstance.transform; }
         }
 
         if (PlayerController.NetInstance.IsDestroyed() || (_isPlayerSet && PlayerController.NetInstance.transform.localPosition.y <= -40.5f))

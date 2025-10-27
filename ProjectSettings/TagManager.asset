@@ -35,6 +35,7 @@ TagManager:
   - EyeSight
   - EnemyProjectile
   - PlayerProjectile
+  - ScoreManager
   layers:
   - Default
   - TransparentFX

@@ -26,10 +26,18 @@ public class ElevatorManager : NetworkSubject
         _playerIsSubscribed = false;
     }
 
-    void Start()
+    /*void Start()
     {
         ResetSetup();
+    }*/
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        ResetSetup();
     }
+
 
     private void ResetSetup()
     {
