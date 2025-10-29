@@ -15,8 +15,10 @@ public class EnemyProjectile : ProjectileBase
             if (!player.IsInDoor())
             {
                 if ((IsClient && !IsHost) && player.gameObject.GetComponent<NetworkObject>().IsSpawned) { player.RequestDestroy(); }
-                else if(IsHost && player.gameObject.GetComponent<NetworkObject>().IsSpawned) { player.gameObject.GetComponent<NetworkObject>().Despawn(); }
+                else if (IsHost && player.gameObject.GetComponent<NetworkObject>().IsSpawned) { player.gameObject.GetComponent<NetworkObject>().Despawn(); }
                 else { Destroy(player.gameObject); }
+                
+                Notify(EventsEnum.PlayerDestroyed);
             }
 
             DestroyThisGameObject();

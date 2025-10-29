@@ -17,7 +17,7 @@ public class PlayerProjectile : ProjectileBase
             else { Destroy(enemy.gameObject); }
 
             GameManager.Instance.GetEnemies().Remove(enemy);
-            GameObject.FindGameObjectWithTag("ScoreManager").GetComponent<ScoreManager>().UpdateScore(100);
+            GameObject.FindGameObjectWithTag("ScoreManager").GetComponent<ScoreManager>().UpdateScore(100, _mySpawner);
 
             DestroyThisGameObject();
         }

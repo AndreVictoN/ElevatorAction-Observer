@@ -285,11 +285,29 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
 
         if (Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && _canChangeLevel)
         {
-            this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -2;
-            this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
+            ChangeSortingOrder(-2);
 
             StartCoroutine(ChangeLevel());
         }
+    }
+
+    private void ChangeSortingOrder(int newLayer)
+    {
+        ChangeSortingOrderServerRpc(newLayer);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ChangeSortingOrderServerRpc(int newLayer)
+    {
+        ChangeSortingOrderClientRpc(newLayer);
+    }
+
+    [ClientRpc]
+    private void ChangeSortingOrderClientRpc(int newLayer)
+    {
+        _mySprite.sortingOrder = newLayer;
+        if (newLayer < 0) _mySprite.enabled = false;
+        else { _mySprite.enabled = true; }
     }
 
     private void ChangeBoxCollider(bool value)
@@ -417,8 +435,7 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
         {
             if(_canEnterDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
             {
-                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = -2;
-                this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
+                ChangeSortingOrder(-2);
                 GameManager.Instance.PlayAudio(1);
                 _canEnterDoor = false;
                 _inDoor = true;
@@ -428,9 +445,8 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
                 _currentDoor.ChangeColor();
                 //GameObject.FindGameObjectWithTag(_tagElevator).GetComponent<ElevatorManager>().Notify(EventsEnum.CHANGE_DOOR_STATE);
 
-                this.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
-                this.gameObject.GetComponent<SpriteRenderer>().enabled = true;
-                GameObject.FindGameObjectWithTag("ScoreManager").GetComponent<ScoreManager>().UpdateScore(500);
+                ChangeSortingOrder(2);
+                GameObject.FindGameObjectWithTag("ScoreManager").GetComponent<ScoreManager>().UpdateScore(500, this.gameObject);
                 GameManager.Instance.PlayAudio(2);
                 _inDoor = false;
             }
@@ -481,6 +497,11 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
     {
         base.OnDestroy();
 
-        NetworkManager.Singleton.Shutdown();
+        //NetworkManager.Singleton.Shutdown();
+    }
+
+    public ulong GetNetworkId()
+    {
+        return this.gameObject.GetComponent<NetworkObject>().NetworkObjectId;
     }
 }

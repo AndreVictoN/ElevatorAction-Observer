@@ -8,7 +8,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameManager : Core.Singleton.Singleton<GameManager>
+public class GameManager : Core.Singleton.Singleton<GameManager>, IObserver
 {
     public GameObject pausedScreen;
     private List<Enemy> _enemies = new();
@@ -22,14 +22,36 @@ public class GameManager : Core.Singleton.Singleton<GameManager>
     private bool _isPlayerSet;
 
     public void AddEnemy(Enemy enemy) { _enemies.Add(enemy); }
-    public List<Enemy> GetEnemies(){return _enemies;}
+    public List<Enemy> GetEnemies() { return _enemies; }
+
+    public void OnNotify(EventsEnum evt)
+    {
+        if (evt == EventsEnum.PlayerDestroyed)
+        {
+            GameOver();
+        }
+    }
 
     void Start()
     {
+        StartNetwork();
         InsertIntoDictionary();
         _spawners.AddRange(GameObject.FindObjectsOfType<EnemySpawner>());
         _audioSources.AddRange(GameObject.FindObjectsOfType<AudioSource>());
         _elevators.AddRange(GameObject.FindObjectsOfType<ElevatorManager>());
+    }
+
+    private void StartNetwork()
+    {
+        if (PlayerPrefs.GetInt("isHosting") < 0) return;
+
+        if(PlayerPrefs.GetInt("isHosting") == 1)
+        {
+            NetworkManager.Singleton.StartHost();
+        }else if (PlayerPrefs.GetInt("isHosting") == 0)
+        {
+            NetworkManager.Singleton.StartClient();
+        }
     }
 
     void Update()
@@ -42,10 +64,15 @@ public class GameManager : Core.Singleton.Singleton<GameManager>
             else { cinemachineCamera.Follow = PlayerController.NetInstance.transform; }
         }
 
-        if (PlayerController.NetInstance.IsDestroyed() || (_isPlayerSet && PlayerController.NetInstance.transform.localPosition.y <= -40.5f))
+        if (PlayerController.NetInstance != null)
         {
-            GameOver();
+            if (_isPlayerSet && PlayerController.NetInstance.transform.localPosition.y <= -40.5f)
+            {
+                GameOver();
+            }
         }
+        
+        if(!NetworkManager.Singleton.IsListening && PlayerPrefs.GetInt("isHosting") == 0) { SceneManager.LoadScene("MainMenu"); }
 
         PauseManagement();
     }
@@ -54,11 +81,42 @@ public class GameManager : Core.Singleton.Singleton<GameManager>
 
     public void GameOver()
     {
-        List<MonoBehaviour> allGameObjects = new();
-        allGameObjects.AddRange(GameObject.FindObjectsOfType<MonoBehaviour>());
-        allGameObjects.ForEach(gO => Destroy(gO));
+        StartCoroutine(DestroyAndShutdown());
 
-        SceneManager.LoadScene("MainMenu");
+        /*List<MonoBehaviour> allGameObjects = new();
+        allGameObjects.AddRange(GameObject.FindObjectsOfType<MonoBehaviour>());
+        allGameObjects.ForEach(gO => Destroy(gO));*/
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestDespawnServerRpc(List<NetworkObject> allNetworkObjects)
+    {
+        foreach(NetworkObject nO in allNetworkObjects)
+        {
+            if (nO.IsSpawned) nO.Despawn();
+        }
+    }
+
+    private IEnumerator DestroyAndShutdown()
+    {
+        List<NetworkObject> allNetworkObjects = new();
+        allNetworkObjects.AddRange(GameObject.FindObjectsOfType<NetworkObject>());
+        RequestDespawnServerRpc(allNetworkObjects);
+
+        yield return null;
+
+        List<Teleporters> allGameObjects = new();
+        allGameObjects.AddRange(GameObject.FindObjectsOfType<Teleporters>());
+        allGameObjects.ForEach(tp => Destroy(tp));
+
+        Destroy(FindObjectOfType<ElevatorManager>());
+
+        yield return new WaitForEndOfFrame();
+        if (NetworkManager.Singleton != null) NetworkManager.Singleton.Shutdown();
+
+        yield return null;
+
+        SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
     }
 
     public void GoToNextLevel()

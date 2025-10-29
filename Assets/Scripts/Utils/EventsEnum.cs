@@ -21,5 +21,6 @@ public enum EventsEnum
     NINETEENTH_FLOOR,
     TWENTIETH_FLOOR,
     PLAYER_IN_ELEVATOR,
-    PLAYER_NOT_IN_ELEVATOR
+    PLAYER_NOT_IN_ELEVATOR,
+    PlayerDestroyed
 }

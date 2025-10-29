@@ -25,6 +25,6 @@ public abstract class NetworkSubject : NetworkBehaviour
 
     public void Notify(EventsEnum evt)
     {
-        _subscribers.ForEach((_observer) => {_observer.OnNotify(evt);});
+        _subscribers.ForEach((_observer) => { _observer.OnNotify(evt); });
     }
 }

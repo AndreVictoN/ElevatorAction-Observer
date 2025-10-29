@@ -4,7 +4,7 @@ using UnityEngine;
 using Unity.Netcode;
 using Unity.VisualScripting;
 
-public class ProjectileBase : NetworkBehaviour, IDestroyableObjects
+public class ProjectileBase : NetworkSubject, IDestroyableObjects
 {
     protected string _tagPlayer = "Player";
     [SerializeField] protected float speed;
@@ -25,6 +25,7 @@ public class ProjectileBase : NetworkBehaviour, IDestroyableObjects
     {
         base.OnNetworkSpawn();
 
+        Subscribe(FindObjectsOfType<GameManager>());
         if(this.gameObject.CompareTag("PlayerProjectile")) this.gameObject.transform.SetParent(null);
         StartCoroutine(DestroyCoroutine());
     }
@@ -88,6 +89,7 @@ public class ProjectileBase : NetworkBehaviour, IDestroyableObjects
 
     void Update()
     {
+        if (!IsOwner) return;
         if (_myRigidBody != null && !GameManager.Instance.IsGamePaused()) _myRigidBody.velocity = new Vector2(multiplier * speed, _myRigidBody.velocity.y);
     }
 
