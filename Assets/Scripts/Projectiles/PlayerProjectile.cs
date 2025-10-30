@@ -12,7 +12,7 @@ public class PlayerProjectile : ProjectileBase
         {
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
 
-            if ((IsClient && !IsHost) && enemy.gameObject.GetComponent<NetworkObject>().IsSpawned) { enemy.RequestDestroy(); }
+            if (IsClient && !IsHost && enemy.gameObject.GetComponent<NetworkObject>().IsSpawned) { enemy.RequestDestroy(); }
             else if (IsHost && enemy.gameObject.GetComponent<NetworkObject>().IsSpawned) { enemy.gameObject.GetComponent<NetworkObject>().Despawn(); }
             else { Destroy(enemy.gameObject); }
 

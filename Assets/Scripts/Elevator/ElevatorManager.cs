@@ -28,16 +28,23 @@ public class ElevatorManager : NetworkSubject
 
     /*void Start()
     {
-        ResetSetup();
+        if (NetworkManager.Singleton.IsServer) StartCoroutine(DelayedSetup());
+        else ResetSetup();
     }*/
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
 
-        ResetSetup();
+        if (IsServer) StartCoroutine(DelayedSetup());
+        else ResetSetup();
     }
 
+    private IEnumerator DelayedSetup()
+    {
+        yield return new WaitForSeconds(0.2f);
+        ResetSetup();
+    }
 
     private void ResetSetup()
     {
@@ -78,6 +85,7 @@ public class ElevatorManager : NetworkSubject
 
     private void HandleMovement()
     {
+        if (!NetworkManager.Singleton.IsServer) return;
         if (GameManager.Instance.IsGamePaused() == true) return;
         if (_isChangingFloor) return;
         float y = this.gameObject.transform.position.y;
@@ -105,22 +113,42 @@ public class ElevatorManager : NetworkSubject
     private void PlayerControls()
     {
         if (GameManager.Instance.IsGamePaused() == true) return;
-        
+
         if (GameManager.Instance.GetPlayerSet() && _playerIn) PlayerController.NetInstance.SetCurrentFloor(_currentFloor);
 
         if (_playerIn && Input.GetKeyDown(KeyCode.UpArrow) && _currentFloor != 1)
         {
             _playerOnCommand = true;
             _playerIsGoingUp = true;
-            StartCoroutine(ChangeFloor(_currentFloor, true));
+            //NetworkObjectReference nor = new(this.gameObject.GetComponent<NetworkObject>());
+            //ChangeFloorServerRpc(_currentFloor, true, nor);
+            if (NetworkManager.Singleton.IsServer) { StartCoroutine(ChangeFloor(_currentFloor, true)); }
+            else { ChangeFloorServerRpc(_currentFloor); }
         }
         else if (_playerIn && Input.GetKeyDown(KeyCode.DownArrow) && _currentFloor != 20)
         {
             _wentUp = false;
             _playerOnCommand = true;
             _playerIsGoingUp = false;
-            StartCoroutine(ChangeFloor(_currentFloor, true));
+            //NetworkObjectReference nor = new(this.gameObject.GetComponent<NetworkObject>());
+            //ChangeFloorServerRpc(_currentFloor, false, nor);
+            if (NetworkManager.Singleton.IsServer) { StartCoroutine(ChangeFloor(_currentFloor, true)); }
+            else { ChangeFloorServerRpc(_currentFloor); }
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ChangeFloorServerRpc(int floorToGo)
+    {
+        StartCoroutine(ChangeFloor(floorToGo, true));
+        ChangeFloorClientRpc(floorToGo);
+    }
+
+    [ClientRpc]
+    private void ChangeFloorClientRpc(int floorToGo)
+    {
+        if (!IsServer) return;
+        StartCoroutine(ChangeFloor(floorToGo, true));
     }
 
     public IEnumerator ChangeFloor(int currentFloor, bool isPlayer)
@@ -129,19 +157,20 @@ public class ElevatorManager : NetworkSubject
 
         if (!isPlayer) yield return new WaitForSeconds(3f);
 
-        _currentTween?.Kill();
+        if (_currentTween != null && _currentTween.IsActive()) { _currentTween.Pause(); _currentTween.Kill(); }
 
         CheckCurrentFloor(currentFloor);
 
-        yield return _currentTween.WaitForCompletion();
+        if(_currentTween != null && _currentTween.IsActive()) yield return _currentTween.WaitForCompletion();
         _isChangingFloor = false;
         _playerIsGoingUp = false;
     }
 
     private void CheckCurrentFloor(int currentFloor)
     {
+        if (!NetworkManager.Singleton.IsServer) return;
         if (!GameManager.Instance.GetPlayerSet()) return;
-
+        
         for (int i = 1; i <= 20; i++)
         {
             if (currentFloor <= PlayerController.NetInstance.GetCurrentFloor() - 2) _wentUp = false;
@@ -149,14 +178,16 @@ public class ElevatorManager : NetworkSubject
             {
                 if (i == 1)
                 {
-                    _currentTween = transform.DOLocalMoveY(_initialYPosition - 2, 2f);
+                    if ((NetworkManager.Singleton.IsListening) || (!NetworkManager.Singleton.IsListening && this.gameObject.activeSelf))
+                    { _currentTween = transform.DOLocalMoveY(_initialYPosition - 2, 2f); }
                     Notify(EventsEnum.SECOND_FLOOR);
                     _wentUp = false;
                     break;
                 }
                 else if (i == 20)
                 {
-                    _currentTween = transform.DOLocalMoveY(_initialYPosition - 18 * 2, 2f);
+                    if ((NetworkManager.Singleton.IsListening) || (!NetworkManager.Singleton.IsListening && this.gameObject.activeSelf))
+                    { _currentTween = transform.DOLocalMoveY(_initialYPosition - 18 * 2, 2f); }
                     Notify(EventsEnum.NINETEENTH_FLOOR);
                     _wentUp = true;
                     break;
@@ -165,13 +196,15 @@ public class ElevatorManager : NetworkSubject
                 {
                     if ((PlayerController.NetInstance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.NetInstance.GetCurrentFloor() + 2)) || _wentUp || _playerIsGoingUp)
                     {
-                        _currentTween = transform.DOLocalMoveY(_initialYPosition, 2f);
+                        if ((NetworkManager.Singleton.IsListening) || (!NetworkManager.Singleton.IsListening && this.gameObject.activeSelf))
+                        { _currentTween = transform.DOLocalMoveY(_initialYPosition, 2f); }
                         Notify(EventsEnum.FIRST_FLOOR);
                         _wentUp = true;
                     }
                     else
                     {
-                        _currentTween = transform.DOLocalMoveY(_initialYPosition - 2 * 2, 2f);
+                        if ((NetworkManager.Singleton.IsListening) || (!NetworkManager.Singleton.IsListening && this.gameObject.activeSelf))
+                        { _currentTween = transform.DOLocalMoveY(_initialYPosition - 2 * 2, 2f); }
                         Notify(EventsEnum.THIRD_FLOOR);
                         _wentUp = false;
                     }
@@ -181,13 +214,15 @@ public class ElevatorManager : NetworkSubject
                 {
                     if ((PlayerController.NetInstance.GetCurrentFloor() < currentFloor && _alreadyPassed.Contains(PlayerController.NetInstance.GetCurrentFloor() + 2)) || _wentUp || _playerIsGoingUp)
                     {
-                        _currentTween = transform.DOLocalMoveY(_initialYPosition - (currentFloor - 2) * 2, 2f);
+                        if ((NetworkManager.Singleton.IsListening) || (!NetworkManager.Singleton.IsListening && this.gameObject.activeSelf))
+                        { _currentTween = transform.DOLocalMoveY(_initialYPosition - (currentFloor - 2) * 2, 2f); }
                         Notify(_floorEventsKeys[currentFloor - 1]);
                         _wentUp = true;
                     }
                     else
                     {
-                        _currentTween = transform.DOLocalMoveY(_initialYPosition - currentFloor * 2, 2f);
+                        if ((NetworkManager.Singleton.IsListening) || (!NetworkManager.Singleton.IsListening && this.gameObject.activeSelf))
+                        { _currentTween = transform.DOLocalMoveY(_initialYPosition - currentFloor * 2, 2f); }
                         Notify(_floorEventsKeys[currentFloor + 1]);
                         _wentUp = false;
                     }
@@ -199,12 +234,26 @@ public class ElevatorManager : NetworkSubject
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.gameObject == PlayerController.NetInstance.gameObject)
+        if (collision.gameObject.CompareTag("Player"))
         {
             _playerIn = true;
-            Notify(EventsEnum.PLAYER_IN_ELEVATOR);
-            collision.gameObject.transform.SetParent(this.gameObject.transform);
+            if (collision.gameObject.GetComponent<PlayerController>().IsServer)
+            {
+                Notify(EventsEnum.PLAYER_IN_ELEVATOR); 
+                NetworkObjectReference playerNetworkObject = new(collision.gameObject.GetComponent<NetworkObject>());
+                NetworkObjectReference elevatorNetworkObject = new(this.gameObject.GetComponent<NetworkObject>());
+
+                RequestReparentingServerRpc(playerNetworkObject, elevatorNetworkObject);
+            }else{ collision.gameObject.GetComponent<PlayerController>().SetIsOnElevator(true); }
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestReparentingServerRpc(NetworkObjectReference objectToParent, NetworkObjectReference parent)
+    {
+        objectToParent.TryGet(out NetworkObject objToParent);
+        parent.TryGet(out NetworkObject prnt);
+        objToParent.TrySetParent(prnt);
     }
 
     void OnTriggerExit2D(Collider2D collision)
@@ -215,18 +264,37 @@ public class ElevatorManager : NetworkSubject
             {
                 _playerIn = false;
                 _playerOnCommand = false;
-                Notify(EventsEnum.PLAYER_NOT_IN_ELEVATOR);
-                if (collision.gameObject.activeSelf == true && this.gameObject.activeSelf == true) StartCoroutine(Unparent(collision.gameObject));
+                if (collision.gameObject.GetComponent<PlayerController>().IsServer)
+                {
+                    Notify(EventsEnum.PLAYER_NOT_IN_ELEVATOR);
+                    if (collision.gameObject.activeSelf == true && this.gameObject.activeSelf == true)
+                    {
+                        if (collision.gameObject.GetComponent<NetworkObject>().IsSpawned)
+                        {
+                            NetworkObjectReference playerNetworkObject = new(collision.gameObject.GetComponent<NetworkObject>());
+                            StartCoroutine(Unparent(playerNetworkObject));
+                        }
+                    }
+                }else { collision.gameObject.GetComponent<PlayerController>().SetIsOnElevator(false); }
             }
         }
     }
 
-    private IEnumerator Unparent(GameObject gO)
+    private IEnumerator Unparent(NetworkObjectReference gO)
     {
         yield return null;
-        gO.GetComponent<NetworkObject>().TryRemoveParent();
+        RequestUnparentingServerRpc(gO);
+        //gO.GetComponent<NetworkObject>().TryRemoveParent();
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestUnparentingServerRpc(NetworkObjectReference gO)
+    {
+        gO.TryGet(out NetworkObject playerNetwork);
+        playerNetwork.TryRemoveParent();
+    }
+
+    public Tween GetTween() { return _currentTween; }
 
     #region Floor Events Keys Dictionary
     private void InsertIntoDictionary()

@@ -19,6 +19,7 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
     [SerializeField] private float _crouchingJumpForce;
     [SerializeField] private int _currentElevatorFloor;
     [SerializeField] private SpriteRenderer _mySprite;
+    [SerializeField] private Transform _myTransform;
     [SerializeField] private float _crouchingSpeed;
     [SerializeField] private float _baseJumpForce;
     [SerializeField] private int _myCurrentFloor;
@@ -82,17 +83,46 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
 
         if (evt == EventsEnum.PLAYER_IN_ELEVATOR)
         {
-            _elevatorX = 0.5f / this.transform.localScale.x;
-            this.gameObject.transform.localScale = new Vector2(_elevatorX, this.transform.localScale.y);
             _isOnElevator = true;
+            ChangeScaleServerRpc(_isOnElevator, _myTransform.localScale.x);
         }
         else if (evt == EventsEnum.PLAYER_NOT_IN_ELEVATOR)
         {
-            this.gameObject.transform.localScale = _defaultScale;
             _isOnElevator = false;
+            ChangeScaleServerRpc(_isOnElevator, 0);
         }
 
         _currentElevatorFloor = floor;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ChangeScaleServerRpc(bool inElevator, float scaleX)
+    {
+        if (inElevator && scaleX != 0)
+        {
+            _elevatorX = 0.5f / scaleX;
+            _myTransform.localScale = new Vector2(_elevatorX, _myTransform.localScale.y);
+        }
+        else if (!inElevator && scaleX == 0)
+        {
+            _myTransform.localScale = _defaultScale;
+        }
+
+        ChangeScaleClientRpc(inElevator, scaleX, new ClientRpcParams{Send = new ClientRpcSendParams{TargetClientIds = new ulong[] {OwnerClientId}}});
+    }
+
+    [ClientRpc]
+    private void ChangeScaleClientRpc(bool inElevator, float scaleX, ClientRpcParams rpcParams= default)
+    {
+        if (inElevator && scaleX != 0)
+        {
+            _elevatorX = 0.5f / scaleX;
+            _myTransform.localScale = new Vector2(_elevatorX, _myTransform.localScale.y);
+        }
+        else if (!inElevator && scaleX == 0)
+        {
+            _myTransform.localScale = _defaultScale;
+        }
     }
     #endregion
 
@@ -184,6 +214,7 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
 
     private void HandleMovement()
     {
+        if (!IsOwner) return;
         if (GameManager.Instance.IsGamePaused() == true) return;
 
         if (_isCrouching) { _currentSpeed = _crouchingSpeed; }
@@ -277,8 +308,8 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
         if (_currentTeleporter != null && Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && (_collidingUp || _collidingDown))
         {
             _isChangingFloor = true;
-            _currentTween?.Kill();
-            _currentTween = _currentTeleporter.MovePlayer(this.gameObject, this.gameObject.transform.localPosition.y);
+            _currentTween?.Kill(false);
+            if(this.gameObject.activeSelf) _currentTween = _currentTeleporter.MovePlayer(this.gameObject, this.gameObject.transform.localPosition.y);
             _myBoxCollider.enabled = false;
             _currentTween.OnComplete(() => { _myBoxCollider.enabled = true; _isChangingFloor = false; });
         }
@@ -350,6 +381,7 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
 
     private void HandleInvisibleWallCollision()
     {
+        if (SceneManager.GetActiveScene().name.Equals("Level02")) return;
         if(_invisibleWalls.Count <= 0) return;
 
         if(_currentElevatorFloor < _myCurrentFloor || _currentElevatorFloor == _myCurrentFloor + 1 || _currentElevatorFloor == _myCurrentFloor)
@@ -504,4 +536,6 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
     {
         return this.gameObject.GetComponent<NetworkObject>().NetworkObjectId;
     }
+
+    public void SetIsOnElevator(bool onElevator) { if (IsServer) { return; } _isOnElevator = onElevator; }
 }

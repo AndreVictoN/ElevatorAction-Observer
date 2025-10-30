@@ -152,7 +152,7 @@ public class Enemy : NetworkBehaviour, IDestroyableObjects
 
     public void RequestDestroy(){ RequestDestroyThisServerRpc(); }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     private void RequestDestroyThisServerRpc()
     {
         if (NetworkObject != null && NetworkObject.IsSpawned)

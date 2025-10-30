@@ -182,6 +182,7 @@ MonoBehaviour:
   _crouchingJumpForce: 2.5
   _currentElevatorFloor: 0
   _mySprite: {fileID: 7502446723017294956}
+  _myTransform: {fileID: 3432123075840604966}
   _crouchingSpeed: 1.5
   _baseJumpForce: 4
   _myCurrentFloor: 0
