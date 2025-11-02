@@ -50,6 +50,7 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
     private bool _isJumping;
     private float _playerHealth;
     private bool _inElevator;
+    private bool _level2Setup;
 
     #region Observer
     public void OnNotify(EventsEnum evt)
@@ -133,6 +134,18 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
         ResetSetup();
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void EnableSpriteServerRpc()
+    {
+        EnableSpriteClientRpc();
+    }
+
+    [ClientRpc]
+    private void EnableSpriteClientRpc()
+    {
+        _mySprite.enabled = true;
+    }
+
     /*void Start()
     {
         ResetSetup();
@@ -196,6 +209,13 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
         HandleAnimation();
         HandleDoorBehaviour();
         HandleInvisibleWallCollision();
+
+        if (SceneManager.GetActiveScene().name.Equals("Level02") && !_level2Setup)
+        {
+            ChangeSortingOrder(2);
+            EnableSpriteServerRpc();
+            _level2Setup = true;
+        }
 
         if(this.gameObject.transform.parent != null)
         {
@@ -308,10 +328,11 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
         if (_currentTeleporter != null && Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && (_collidingUp || _collidingDown))
         {
             _isChangingFloor = true;
-            _currentTween?.Kill(false);
-            if(this.gameObject.activeSelf) _currentTween = _currentTeleporter.MovePlayer(this.gameObject, this.gameObject.transform.localPosition.y);
+            bool goingUp = _collidingUp;
             _myBoxCollider.enabled = false;
-            _currentTween.OnComplete(() => { _myBoxCollider.enabled = true; _isChangingFloor = false; });
+
+            _currentTween?.Kill(false);
+            TeleportPlayerServerRpc(transform.localPosition.y, goingUp);
         }
 
         if (Input.GetKeyDown(KeyCode.X) && _isOnFloor && !_inDoor && _canChangeLevel)
@@ -320,6 +341,22 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
 
             StartCoroutine(ChangeLevel());
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void TeleportPlayerServerRpc(float startY, bool isUp)
+    {
+        float goToY = isUp ? startY + 2f : startY - 2f;
+
+        _currentTween = transform.DOLocalMoveY(goToY, 1f).OnComplete(() => { _myBoxCollider.enabled = true; _isChangingFloor = false; });
+
+        TeleportPlayerClientRpc(goToY);
+    }
+    
+    [ClientRpc]
+    private void TeleportPlayerClientRpc(float targetY)
+    {
+        _currentTween = transform.DOLocalMoveY(targetY, 1f).OnComplete(() => { _myBoxCollider.enabled = true; _isChangingFloor = false; });
     }
 
     private void ChangeSortingOrder(int newLayer)

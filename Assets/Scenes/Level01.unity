@@ -801,7 +801,7 @@ GameObject:
   - component: {fileID: 80797952}
   m_Layer: 0
   m_Name: MoveUp (1)
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2279,7 +2279,7 @@ GameObject:
   - component: {fileID: 165479278}
   m_Layer: 0
   m_Name: MoveUp (1)
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3876,7 +3876,7 @@ GameObject:
   - component: {fileID: 253043465}
   m_Layer: 0
   m_Name: MoveUp (1)
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5966,7 +5966,7 @@ GameObject:
   - component: {fileID: 467841411}
   m_Layer: 0
   m_Name: MoveUp
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6559,7 +6559,7 @@ GameObject:
   - component: {fileID: 493045537}
   m_Layer: 0
   m_Name: MoveUp (1)
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6772,7 +6772,7 @@ GameObject:
   - component: {fileID: 520910258}
   m_Layer: 0
   m_Name: MoveUp (1)
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -9407,7 +9407,7 @@ GameObject:
   - component: {fileID: 706047375}
   m_Layer: 0
   m_Name: MoveUp (1)
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -12160,7 +12160,7 @@ GameObject:
   - component: {fileID: 951907827}
   m_Layer: 0
   m_Name: MoveUp (1)
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -13265,7 +13265,7 @@ GameObject:
   - component: {fileID: 1078241003}
   m_Layer: 0
   m_Name: MoveUp
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -13936,7 +13936,7 @@ GameObject:
   - component: {fileID: 1131577049}
   m_Layer: 0
   m_Name: MoveUp
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -14079,7 +14079,7 @@ GameObject:
   - component: {fileID: 1140674452}
   m_Layer: 0
   m_Name: MoveUp
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -15013,7 +15013,7 @@ GameObject:
   - component: {fileID: 1274359894}
   m_Layer: 0
   m_Name: MoveUp (1)
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17429,7 +17429,7 @@ GameObject:
   - component: {fileID: 1425016262}
   m_Layer: 0
   m_Name: MoveUp
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -35908,7 +35908,7 @@ GameObject:
   - component: {fileID: 1574297759}
   m_Layer: 0
   m_Name: MoveUp (1)
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -36692,7 +36692,7 @@ GameObject:
   - component: {fileID: 1624226622}
   m_Layer: 0
   m_Name: MoveUp
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -37439,7 +37439,7 @@ GameObject:
   - component: {fileID: 1672056239}
   m_Layer: 0
   m_Name: MoveUp (1)
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -39597,7 +39597,7 @@ GameObject:
   - component: {fileID: 1858014569}
   m_Layer: 0
   m_Name: MoveUp
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -41827,7 +41827,7 @@ GameObject:
   - component: {fileID: 2021227946}
   m_Layer: 0
   m_Name: MoveUp
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -42319,7 +42319,7 @@ GameObject:
   - component: {fileID: 2038532223}
   m_Layer: 0
   m_Name: MoveUp
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -42690,7 +42690,7 @@ GameObject:
   - component: {fileID: 2052783405}
   m_Layer: 0
   m_Name: MoveUp
-  m_TagString: Untagged
+  m_TagString: MoveUp
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
