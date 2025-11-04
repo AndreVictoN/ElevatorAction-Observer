@@ -146,6 +146,18 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
         _mySprite.enabled = true;
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void ChangePositionServerRpc(Vector2 position)
+    {
+        ChangePositionClientRpc(position);
+    }
+
+    [ClientRpc]
+    private void ChangePositionClientRpc(Vector2 position)
+    {
+        _myTransform.localPosition = position;
+    }
+
     /*void Start()
     {
         ResetSetup();
@@ -212,6 +224,10 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
 
         if (SceneManager.GetActiveScene().name.Equals("Level02") && !_level2Setup)
         {
+            _teleporters.Clear();
+            _teleporters.AddRange(GameObject.FindObjectsOfType<Teleporters>());
+            if (IsServer) ChangePositionServerRpc(new Vector2(-2.72f, 1.875f));
+            else { ChangePositionServerRpc(new Vector2(-3.72f, 1.875f)); }
             ChangeSortingOrder(2);
             EnableSpriteServerRpc();
             _level2Setup = true;
@@ -380,7 +396,7 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
 
     private void ChangeBoxCollider(bool value)
     {
-        if (!IsServer && !IsClient && !IsHost)
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
         {
             if (value) { _myBoxCollider.size = _defaultColliderSize; _myBoxCollider.offset = _defaultColliderOffset; }
             else { _myBoxCollider.size = new Vector2(_defaultColliderSize.x, _defaultColliderSize.y * 0.2f); _myBoxCollider.offset = new Vector2(_defaultColliderOffset.x, -0.43f); }
@@ -500,15 +516,16 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
 
     private void HandleDoorBehaviour()
     {
-        if(_currentDoor != null)
+        if (_currentDoor != null)
         {
-            if(_canEnterDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
+            if (_canEnterDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
             {
                 ChangeSortingOrder(-2);
                 GameManager.Instance.PlayAudio(1);
                 _canEnterDoor = false;
-                _inDoor = true;
-            }else if(_inDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
+                ChangeIsInDoorServerRpc(true);
+            }
+            else if (_inDoor && Input.GetKeyDown(KeyCode.X) && _currentDoor.GetIsActive())
             {
                 _currentDoor.SetIsActive(false);
                 _currentDoor.ChangeColor();
@@ -517,9 +534,22 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
                 ChangeSortingOrder(2);
                 GameObject.FindGameObjectWithTag("ScoreManager").GetComponent<ScoreManager>().UpdateScore(500, this.gameObject);
                 GameManager.Instance.PlayAudio(2);
-                _inDoor = false;
+                ChangeIsInDoorServerRpc(false);
             }
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ChangeIsInDoorServerRpc(bool isInDoor)
+    {
+        _inDoor = isInDoor;
+        ChangeIsInDoorClientRpc(isInDoor);
+    }
+
+    [ClientRpc]
+    private void ChangeIsInDoorClientRpc(bool isInDoor)
+    {
+        _inDoor = isInDoor;
     }
 
     void OnTriggerExit2D(Collider2D collision)

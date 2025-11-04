@@ -64,24 +64,25 @@ public class EnemySpawner : MonoBehaviour, IObserver
         yield return new WaitForSeconds(6f);
         if(_enemiesSpawned.Count < 2)
         {
-            if (!NetworkManager.Singleton.IsHost && !NetworkManager.Singleton.IsClient) _enemyInstance = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
-            else if(NetworkManager.Singleton.IsHost)
+            if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening) _enemyInstance = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+            
+            if(NetworkManager.Singleton.IsServer)
             {
                 _enemyInstance = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
-                _enemyInstance.GetComponent<NetworkObject>().Spawn();
-            }
+                if(NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening) _enemyInstance.GetComponent<NetworkObject>().Spawn();
 
-            if (_enemyInstance != null)
-            {
-                _enemyInstance.transform.SetParent(null);
-
-                Enemy enemyScript = _enemyInstance.GetComponent<Enemy>();
-                if (enemyScript != null)
+                if (_enemyInstance != null)
                 {
-                    GameManager.Instance.AddEnemy(enemyScript);
-                }
+                    _enemyInstance.transform.GetComponent<NetworkObject>().TryRemoveParent();
 
-                _enemiesSpawned.Add(_enemyInstance);
+                    Enemy enemyScript = _enemyInstance.GetComponent<Enemy>();
+                    if (enemyScript != null)
+                    {
+                        GameManager.Instance.AddEnemy(enemyScript);
+                    }
+
+                    _enemiesSpawned.Add(_enemyInstance);
+                }
             }
         }
 

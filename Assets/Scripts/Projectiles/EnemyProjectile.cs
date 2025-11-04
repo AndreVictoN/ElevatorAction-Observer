@@ -19,9 +19,8 @@ public class EnemyProjectile : ProjectileBase
                 else { Destroy(player.gameObject); }
                 
                 Notify(EventsEnum.PlayerDestroyed);
+                DestroyThisGameObject();
             }
-
-            DestroyThisGameObject();
         }
     }
 }

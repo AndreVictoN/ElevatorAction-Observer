@@ -258,7 +258,7 @@ public class ElevatorManager : NetworkSubject
 
     void OnTriggerExit2D(Collider2D collision)
     {
-        if (PlayerController.NetInstance.isActiveAndEnabled)
+        if (PlayerController.NetInstance != null)
         {
             if (collision.gameObject.CompareTag("Player"))
             {

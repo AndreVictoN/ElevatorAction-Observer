@@ -80,9 +80,11 @@ public class Shooter : NetworkBehaviour
 
     private void SpawnProjectile(Vector3 position)
     {
+        if (!IsServer) return;
+
         GameObject projectileInstance;
         projectileInstance = Instantiate(projectile, position, Quaternion.identity);
-        projectileInstance.GetComponent<NetworkObject>().Spawn(true);
+        if(NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening) projectileInstance.GetComponent<NetworkObject>().Spawn(true);
 
         if (projectileInstance.CompareTag("PlayerProjectile")) projectileInstance.GetComponent<PlayerProjectile>().SetMySpawner(this.transform.parent.gameObject);
         

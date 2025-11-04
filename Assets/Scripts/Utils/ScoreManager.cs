@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using Core.Singleton;
 using TMPro;
 using Unity.Netcode;
 using Unity.VisualScripting.Dependencies.Sqlite;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class ScoreManager : NetworkBehaviour
+public class ScoreManager : NetworkSingleton<ScoreManager>
 {
     private ulong _playerOneId;
     public TextMeshProUGUI score;
@@ -27,33 +29,36 @@ public class ScoreManager : NetworkBehaviour
             playerTwoScore.text = "P2 Score: " + _scoreP2;
         }*/
 
-        if(player.GetComponent<PlayerController>().GetNetworkId() == _playerOneId)
+        if (player != null && player.GetComponent<PlayerController>() != null)
         {
-            _isPlayerTwo = false;
-        }
-        else
-        {
-            _isPlayerTwo = true;
-        }
+            if (player.GetComponent<PlayerController>().GetNetworkId() == _playerOneId)
+            {
+                _isPlayerTwo = false;
+            }
+            else
+            {
+                _isPlayerTwo = true;
+            }
 
-        if (!_isPlayerTwo)
-        {
-            UpdateScoreP1ServerRpc(sum);
-        }
-        else
-        {
-            UpdateScoreP2ServerRpc(sum);
+            if (!_isPlayerTwo)
+            {
+                UpdateScoreP1ServerRpc(sum);
+            }
+            else
+            {
+                UpdateScoreP2ServerRpc(sum);
+            }
         }
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void UpdateScoreP1ServerRpc(int sum)
+    public void UpdateScoreP1ServerRpc(int sum)
     {
         _score.Value += sum;
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void UpdateScoreP2ServerRpc(int sum)
+    public void UpdateScoreP2ServerRpc(int sum)
     {
         _scoreP2.Value += sum;
     }
@@ -78,9 +83,19 @@ public class ScoreManager : NetworkBehaviour
 
     public void CheckPlayerTwo()
     {
-        if (GameObject.FindGameObjectsWithTag("Player").Length > 1) _isPlayerTwo = true;
-        if (!_isPlayerTwo) { score.text = "P1 Score: 0"; _playerOneId = GameObject.FindGameObjectWithTag("Player").GetComponent<NetworkObject>().NetworkObjectId; }
-        else { SpawnPlayerTwoScoreServerRpc(); playerTwoScore.text = "P2 Score: 0"; }
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        if (players.Length > 1) _isPlayerTwo = true;
+        if (!_isPlayerTwo)
+        {
+            if(!SceneManager.GetActiveScene().name.Equals("Level02")) score.text = "P1 Score: 0";
+            foreach (GameObject gO in players)
+            {
+                if (gO.GetComponent<PlayerController>().IsServer) _playerOneId = gO.GetComponent<PlayerController>().GetNetworkId();
+            }
+        }
+        else { SpawnPlayerTwoScoreServerRpc(); if(!SceneManager.GetActiveScene().name.Equals("Level02"))playerTwoScore.text = "P2 Score: 0"; }
+
+        if (_playerOneId == 0) _playerOneId = 1;
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -94,4 +109,7 @@ public class ScoreManager : NetworkBehaviour
     {
         playerTwoScore.gameObject.SetActive(true);
     }
+
+    public int GetPlayerOneScore() { return _score.Value; }
+    public int GetPlayerTwoScore() { return _scoreP2.Value; }
 }

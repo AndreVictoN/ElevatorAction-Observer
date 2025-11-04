@@ -34,7 +34,10 @@ public class Enemy : NetworkBehaviour, IDestroyableObjects
         if (GameManager.Instance.GetPlayerSet())
         {
             _isPlayerSet = true;
-            Physics2D.IgnoreCollision(PlayerController.NetInstance.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);
+
+            foreach (PlayerController player in FindObjectsByType<PlayerController>(FindObjectsSortMode.None)){
+                Physics2D.IgnoreCollision(player.gameObject/*PlayerController.NetInstance*/.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);
+            }
         }
     }
 
@@ -65,7 +68,7 @@ public class Enemy : NetworkBehaviour, IDestroyableObjects
     {
         base.OnNetworkSpawn();
 
-        if(GameManager.Instance.GetPlayerSet()) _playerTransform = PlayerController.NetInstance?.transform;
+        if(GameManager.Instance.GetPlayerSet() && PlayerController.NetInstance != null) _playerTransform = PlayerController.NetInstance?.transform;
     }
 
 
@@ -79,11 +82,13 @@ public class Enemy : NetworkBehaviour, IDestroyableObjects
         if (!_isPlayerSet && GameManager.Instance.GetPlayerSet())
         {
             _isPlayerSet = GameManager.Instance.GetPlayerSet();
-            Physics2D.IgnoreCollision(PlayerController.NetInstance.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);
+            foreach (PlayerController player in FindObjectsByType<PlayerController>(FindObjectsSortMode.None)){
+                Physics2D.IgnoreCollision(player.gameObject/*PlayerController.NetInstance*/.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);
+            }
             _playerTransform = PlayerController.NetInstance?.transform;
         }
 
-        GameManager.Instance.GetEnemies().ForEach(e => {if(e.gameObject.activeSelf) Physics2D.IgnoreCollision(e.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);});
+        GameManager.Instance.GetEnemies().ForEach(e => {if(e != null && e.gameObject.activeSelf) Physics2D.IgnoreCollision(e.GetComponent<BoxCollider2D>(), GetComponent<BoxCollider2D>(), true);});
         if (_playerTransform != null)
         {
             Move();
@@ -139,6 +144,7 @@ public class Enemy : NetworkBehaviour, IDestroyableObjects
         if(collision.gameObject.CompareTag("Player"))
         {
             _canSeePlayer = true;
+            _playerTransform = collision.gameObject.transform;
         }
     }
 
@@ -147,6 +153,7 @@ public class Enemy : NetworkBehaviour, IDestroyableObjects
         if(collision.gameObject.CompareTag("Player"))
         {
             _canSeePlayer = false;
+            _playerTransform = collision.gameObject.transform;
         }
     }
 
