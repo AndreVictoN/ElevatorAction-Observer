@@ -36,6 +36,9 @@ TagManager:
   - EnemyProjectile
   - PlayerProjectile
   - ScoreManager
+  - FinalMessage
+  - NetworkManager
+  - GameManager
   layers:
   - Default
   - TransparentFX

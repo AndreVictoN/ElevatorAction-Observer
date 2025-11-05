@@ -3,13 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
 using DG.Tweening;
-using TMPro;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Core.Singleton;
 
-public class GameManager : Core.Singleton.Singleton<GameManager>, IObserver
+public class GameManager : Singleton<GameManager>, IObserver
 {
     public GameObject pausedScreen;
     public GameObject networkMenu;
@@ -22,8 +21,6 @@ public class GameManager : Core.Singleton.Singleton<GameManager>, IObserver
     public Dictionary<string, int> floorKeys = new Dictionary<string, int>();
     private bool _pausedGame = false;
     private bool _isPlayerSet;
-    private bool _isHosting;
-    private bool _isClient;
     private int _pastPlayerOneScore = 0;
     private int _pastPlayerTwoScore = 0;
 
@@ -63,14 +60,10 @@ public class GameManager : Core.Singleton.Singleton<GameManager>, IObserver
         if (PlayerPrefs.GetInt("isHosting") == 1)
         {
             if(NetworkManager.Singleton != null && !NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer) NetworkManager.Singleton.StartHost();
-            _isClient = false;
-            _isHosting = true;
         }
         else if (PlayerPrefs.GetInt("isHosting") == 0)
         {
             if(NetworkManager.Singleton != null && !NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer) NetworkManager.Singleton.StartClient();
-            _isHosting = false;
-            _isClient = true;
         }
     }
 
@@ -106,7 +99,7 @@ public class GameManager : Core.Singleton.Singleton<GameManager>, IObserver
             }
         }
 
-        if ((NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening) && !_isHosting && _isClient) { SceneManager.LoadScene("MainMenu"); }
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening) { SceneManager.LoadScene("MainMenu"); }
 
         PauseManagement();
     }
@@ -123,11 +116,13 @@ public class GameManager : Core.Singleton.Singleton<GameManager>, IObserver
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void RequestDespawnServerRpc(List<NetworkObjectReference> allNetworkObjects)
+    private void RequestDespawnServerRpc(List<NetworkObjectReference> netObjects)
     {
-        foreach(NetworkObjectReference nO in allNetworkObjects)
+        if (!NetworkManager.Singleton.IsServer) return;
+
+        foreach(NetworkObjectReference nO in netObjects)
         {
-            if(nO.TryGet(out NetworkObject netO)) if (netO.IsSpawned) netO.Despawn();
+            if(nO.TryGet(out NetworkObject netO)) if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.ContainsKey(netO.NetworkObjectId) && netO.IsSpawned) netO.Despawn();
         }
     }
 
@@ -174,44 +169,47 @@ public class GameManager : Core.Singleton.Singleton<GameManager>, IObserver
         _pastPlayerOneScore = ScoreManager.NetInstance.GetPlayerOneScore();
         _pastPlayerTwoScore = ScoreManager.NetInstance.GetPlayerTwoScore();
 
+        BasicGoToSettings();
+        RequestLoadSceneServerRpc("Level02");
+    }
+
+    public void GoToEndGame()
+    {
+        BasicGoToSettings();
+
+        RequestLoadSceneServerRpc("FinalScene");
+    }
+    
+    private void BasicGoToSettings()
+    {
         List<Enemy> allEnemies = new();
         allEnemies.AddRange(FindObjectsOfType<Enemy>());
-        
+
         if (NetworkManager.Singleton.IsServer)
         {
             allEnemies.ForEach(e => Destroy(e.gameObject));
         }
-        else {
+        else
+        {
             List<NetworkObjectReference> allEnemiesRef = new();
 
             foreach (Enemy e in allEnemies)
             {
                 allEnemiesRef.Add(new NetworkObjectReference(e.GetComponent<NetworkObject>()));
             }
-            
-            RequestDestroyEnemiesServerRpc(allEnemiesRef);
+
+            RequestDespawnServerRpc(allEnemiesRef);
         }
-
+        
         DOTween.KillAll(false);
-        RequestLoadSceneServerRpc();
-        //NetworkManager.Singleton.SceneManager.LoadScene("Level02", LoadSceneMode.Single);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void RequestDestroyEnemiesServerRpc(List<NetworkObjectReference> enemiesRef)
+    private void RequestLoadSceneServerRpc(string sceneName)
     {
-        enemiesRef.ForEach(e => {
-            if (e.TryGet(out NetworkObject enemy))
-            {
-                if (enemy != null && enemy.IsSpawned) { enemy.Despawn(true); }
-            }
-        });
-    }
+        if (!NetworkManager.Singleton.IsServer) return;
 
-    [ServerRpc(RequireOwnership = false)]
-    private void RequestLoadSceneServerRpc()
-    {
-        NetworkManager.Singleton.SceneManager.LoadScene("Level02", LoadSceneMode.Single);
+        NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
     }
 
     private void PauseManagement()

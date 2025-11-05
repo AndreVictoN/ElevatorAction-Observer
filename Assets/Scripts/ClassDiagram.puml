@@ -1,0 +1,285 @@
+﻿@startuml
+class Door {
+    - _renderer : SpriteRenderer
+    + ChangeColor() : void
+    - ChangeColorServerRpc() : void
+    - ChangeColorClientRpc() : void
+    + SetIsActive(isDoorActive : bool) : void
+    + GetIsActive() : bool
+    + GetPosition() : Vector3
+    - ChangeIsActiveServerRpc(value : bool) : void
+    - ChangeIsActiveClientRpc() : void
+}
+class ElevatorManager {
+    - _initialYPosition : float
+    - _currentTween : Tween
+    - _currentFloor : int
+    - _scaleY : float
+    - _wentUp : bool
+    - _movementConstant : int
+    - _playerIn : bool
+    - _playerOnCommand : bool
+    - _playerIsGoingUp : bool
+    - _playerIsSubscribed : bool
+    - DelayedSetup() : IEnumerator
+    - ResetSetup() : void
+    - SetPlayerSubscription() : void
+    - CleanAlreadyPassed() : void
+    - HandleMovement() : void
+    - PlayerControls() : void
+    - ChangeFloorServerRpc(floorToGo : int) : void
+    - ChangeFloorClientRpc(floorToGo : int) : void
+    + ChangeFloor(currentFloor : int, isPlayer : bool) : IEnumerator
+    - CheckCurrentFloor(currentFloor : int) : void
+    - RequestReparentingServerRpc(objectToParent : NetworkObjectReference, parent : NetworkObjectReference) : void
+    - Unparent(gO : NetworkObjectReference) : IEnumerator
+    - RequestUnparentingServerRpc(gO : NetworkObjectReference) : void
+    + GetTween() : Tween
+    - InsertIntoDictionary() : void
+}
+class Enemy {
+    - patrolPointA : Transform
+    - patrolPointB : Transform
+    - _currentTarget : Transform
+    - _rigidbody : Rigidbody2D
+    - _playerTransform : Transform
+    - _canSeePlayer : bool
+    - _myAnimator : Animator
+    - _isPlayerSet : bool
+    - PatrolPointManager() : void
+    - Move() : void
+    + RequestDestroy() : void
+    - RequestDestroyThisServerRpc() : void
+    + IsSeeingPlayer() : bool
+}
+class EnemySpawner {
+    - enemyPrefab : GameObject
+    - _enemyInstance : GameObject
+    + OnNotify(evt : EventsEnum) : void
+    + RemoveEnemy(enemy : GameObject) : void
+    - InsertIntoDictionary() : void
+}
+class InvisibleWalls {
+    + OnNotify(evt : EventsEnum) : void
+    + ActivateColision() : IEnumerator
+    - ManageElevatorColliders() : void
+}
+class ClientNetworkAnimator {
+}
+class ClientNetworkTransform {
+}
+class PlayerController {
+    + myRigidBody : Rigidbody2D
+    + myAnimator : Animator
+    - _invisibleWalls : List<InvisibleWalls>
+    - _myBoxCollider : BoxCollider2D
+    - _crouchingJumpForce : float
+    - _currentElevatorFloor : int
+    - _mySprite : SpriteRenderer
+    - _myTransform : Transform
+    - _crouchingSpeed : float
+    - _baseJumpForce : float
+    - _myCurrentFloor : int
+    - _baseSpeed : float
+    - _defaultColliderOffset : Vector2
+    - _defaultColliderSize : Vector2
+    - _defaultScale : Vector3
+    - _currentSpeed : float
+    - _currentTween : Tween
+    - _collidingDown : bool
+    - _collidingUp : bool
+    - _currentTeleporter : Teleporters
+    - _isChangingFloor : bool
+    - _currentDoor : Door
+    - _jumpForce : float
+    - _elevatorX : float
+    - _isWalking : bool
+    - _isJumping : bool
+    - _playerHealth : float
+    - _inElevator : bool
+    - _level2Setup : bool
+    + OnNotify(evt : EventsEnum) : void
+    - ChangeScaleServerRpc(inElevator : bool, scaleX : float) : void
+    - ChangeScaleClientRpc(inElevator : bool, scaleX : float) : void
+    - EnableSpriteServerRpc() : void
+    - EnableSpriteClientRpc() : void
+    - ChangePositionServerRpc(position : Vector2) : void
+    - ChangePositionClientRpc(position : Vector2) : void
+    - ResetSetup() : void
+    - ChangeThisColorToPlayerTwo() : void
+    - ChangeThisColorToPlayerTwoServerRpc() : void
+    - ChangeThisColorToPlayerTwoClientRpc() : void
+    + IsInElevtor() : bool
+    - HandleMovement() : void
+    - HandleAnimation() : void
+    - HandleJump() : void
+    - HandleActions() : void
+    - TeleportPlayerServerRpc(startY : float, isUp : bool) : void
+    - TeleportPlayerClientRpc(targetY : float) : void
+    - ChangeSortingOrder(newLayer : int) : void
+    - ChangeSortingOrderServerRpc(newLayer : int) : void
+    - ChangeSortingOrderClientRpc(newLayer : int) : void
+    - ChangeBoxCollider(value : bool) : void
+    - ChangeBoxColliderServerRpc(isCrouching : bool) : void
+    - ChangeBoxColliderClientRpc(isCrouching : bool) : void
+    - ChangeLevel() : IEnumerator
+    - HandleInvisibleWallCollision() : void
+    - CheckFloor(col : Collision2D) : void
+    - HandleDoorBehaviour() : void
+    - ChangeIsInDoorServerRpc(isInDoor : bool) : void
+    - ChangeIsInDoorClientRpc(isInDoor : bool) : void
+    + SetCurrentFloor(floor : int) : void
+    + RequestDestroy() : void
+    - RequestDestroyThisServerRpc() : void
+    + GetCurrentFloor() : int
+    + GetElevatorFloor() : int
+    + IsCrouching() : bool
+    + IsInDoor() : bool
+    + GetNetworkId() : ulong
+    + SetIsOnElevator(onElevator : bool) : void
+}
+class Shooter {
+    + projectile : GameObject
+    - CheckSpawnInServer() : void
+    - RequestSpawnThisServerRpc(position : Vector3) : void
+    - SpawnProjectile(position : Vector3) : void
+}
+class EnemyProjectile {
+}
+class PlayerProjectile {
+    + SetMySpawner(spawner : GameObject) : void
+}
+class ProjectileBase {
+    # speed : float
+    # _myRigidBody : Rigidbody2D
+    # multiplier : int
+    - _myParent : GameObject
+    - _isMoving : bool
+    # _mySpawner : GameObject
+    - OnTransformParentChanged() : void
+    # DestroyThisGameObject() : void
+    - RequestDestroyThisServerRpc() : void
+    # SetMovement(localScaleX*/ : /*float) : void
+    + SetMyParent(parent : GameObject) : void
+}
+class DownTeleporter {
+}
+class Teleporters <<abstract>> {
+}
+class UpTeleporter {
+}
+class ChangeSceneManager {
+    + Host(source : AudioSource) : void
+    + Join(source : AudioSource) : void
+    - ChangeScene(source : AudioSource) : void
+    + Exit(source : AudioSource) : void
+    - Change(sceneToLoad : String, source : AudioSource) : IEnumerator
+    - ExitGame(source : AudioSource) : IEnumerator
+}
+class ExitServerButtonManager {
+    + GoToMenu() : void
+    + GoToMenuLocally() : void
+}
+class FinalSceneManager {
+    - textWinMessage : TextMeshProUGUI
+    - textScoreP1 : TextMeshProUGUI
+    - textScoreP2 : TextMeshProUGUI
+    - scoreP1 : int
+    - scoreP2 : int
+    - RequestDespawnServerRpc(netObjects : List<NetworkObjectReference>) : void
+    - TryShutdown() : IEnumerator
+}
+class GameManager {
+    + pausedScreen : GameObject
+    + networkMenu : GameObject
+    + cinemachineCamera : CinemachineVirtualCamera
+    - _isPlayerSet : bool
+    + AddEnemy(enemy : Enemy) : void
+    + GetEnemies() : List<Enemy>
+    + OnNotify(evt : EventsEnum) : void
+    - OnSceneLoaded(sceneName : string, loadSceneMode : LoadSceneMode, clientsCompleted : List<ulong>, clientsTimedOut : List<ulong>) : void
+    - StartNetwork() : void
+    + GetPlayerSet() : bool
+    + GameOver() : void
+    - RequestDespawnServerRpc(netObjects : List<NetworkObjectReference>) : void
+    - DestroyAndShutdown() : IEnumerator
+    + GoToNextLevel() : void
+    + GoToEndGame() : void
+    - BasicGoToSettings() : void
+    - RequestLoadSceneServerRpc(sceneName : string) : void
+    - PauseManagement() : void
+    + PlayAudio(clipNumber : int) : void
+    + IsGamePaused() : bool
+    - InsertIntoDictionary() : void
+}
+class IDestroyableObjects <<interface>> {
+    + RequestDestroy() : void
+}
+class IObserver <<interface>> {
+    + OnNotify(evt : EventsEnum) : void
+}
+class MenuManager {
+}
+class NetworkSubject <<abstract>> {
+    + Subscribe(observer : IObserver) : void
+    + Subscribe(observers : IObserver[]) : void
+    + Unsubscribe(observer : IObserver) : void
+    + Notify(evt : EventsEnum) : void
+}
+class ScoreManager {
+    - _playerOneId : ulong
+    + score : TextMeshProUGUI
+    + playerTwoScore : TextMeshProUGUI
+    + scoreP1Save : int
+    + scoreP2Save : int
+    - _isPlayerTwo : bool
+    + UpdateScore(sum : int, player : GameObject) : void
+    + UpdateScoreP1ServerRpc(sum : int) : void
+    + UpdateScoreP2ServerRpc(sum : int) : void
+    + CheckPlayerTwo() : void
+    - SpawnPlayerTwoScoreServerRpc() : void
+    - SpawnPlayerTwoScoreClientRpc() : void
+    + GetPlayerOneScore() : int
+    + GetPlayerTwoScore() : int
+}
+class Subject <<abstract>> {
+    + Subscribe(observer : IObserver) : void
+    + Subscribe(observers : IObserver[]) : void
+    + Unsubscribe(observer : IObserver) : void
+    + Notify(evt : EventsEnum) : void
+}
+class NetworkSingleton {
+}
+class Singleton {
+}
+NetworkBehaviour <|-- Door
+NetworkSubject <|-- ElevatorManager
+NetworkBehaviour <|-- Enemy
+IDestroyableObjects <|.. Enemy
+MonoBehaviour <|-- EnemySpawner
+IObserver <|.. EnemySpawner
+MonoBehaviour <|-- InvisibleWalls
+IObserver <|.. InvisibleWalls
+NetworkAnimator <|-- ClientNetworkAnimator
+NetworkTransform <|-- ClientNetworkTransform
+NetworkSingleton<PlayerController> <|-- PlayerController
+IObserver <|.. PlayerController
+IDestroyableObjects <|.. PlayerController
+NetworkBehaviour <|-- Shooter
+ProjectileBase <|-- EnemyProjectile
+ProjectileBase <|-- PlayerProjectile
+NetworkSubject <|-- ProjectileBase
+IDestroyableObjects <|.. ProjectileBase
+Teleporters <|-- DownTeleporter
+MonoBehaviour <|-- Teleporters
+Teleporters <|-- UpTeleporter
+MonoBehaviour <|-- ChangeSceneManager
+MonoBehaviour <|-- ExitServerButtonManager
+MonoBehaviour <|-- FinalSceneManager
+Singleton<GameManager> <|-- GameManager
+IObserver <|.. GameManager
+MonoBehaviour <|-- MenuManager
+NetworkBehaviour <|-- NetworkSubject
+NetworkSingleton<ScoreManager> <|-- ScoreManager
+MonoBehaviour <|-- Subject
+@enduml

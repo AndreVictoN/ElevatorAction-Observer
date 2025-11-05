@@ -1,9 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using Core.Singleton;
 using TMPro;
 using Unity.Netcode;
-using Unity.VisualScripting.Dependencies.Sqlite;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -14,6 +11,8 @@ public class ScoreManager : NetworkSingleton<ScoreManager>
     public TextMeshProUGUI playerTwoScore;
     private NetworkVariable<int> _score = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     private NetworkVariable<int> _scoreP2 = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    static public int scoreP1Save;
+    static public int scoreP2Save;
     private bool _isPlayerTwo;
 
     public void UpdateScore(int sum, GameObject player)
@@ -55,16 +54,20 @@ public class ScoreManager : NetworkSingleton<ScoreManager>
     public void UpdateScoreP1ServerRpc(int sum)
     {
         _score.Value += sum;
+        scoreP1Save = _score.Value;
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void UpdateScoreP2ServerRpc(int sum)
     {
         _scoreP2.Value += sum;
+        scoreP2Save = _scoreP2.Value;
     }
 
     public override void OnNetworkSpawn()
     {
+        if (SceneManager.GetActiveScene().name.Equals("FinalScene")) return;
+        
         _score.OnValueChanged += (oldVal, newVal) =>
         {
             score.text = "P1 Score: " + newVal;

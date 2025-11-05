@@ -1,14 +1,12 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
-using UnityEngine.Diagnostics;
 using UnityEngine.SceneManagement;
+using Core.Singleton;
 
-public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController>, IObserver, IDestroyableObjects
+public class PlayerController : NetworkSingleton<PlayerController>, IObserver, IDestroyableObjects
 {
     public Rigidbody2D myRigidBody;
     public Animator myAnimator;
@@ -428,8 +426,8 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
     private IEnumerator ChangeLevel()
     {
         yield return new WaitForSeconds(0.3f);
-        if(SceneManager.GetActiveScene().name == "Level01") GameManager.Instance.GoToNextLevel();
-        else{GameManager.Instance.GameOver();};
+        if(SceneManager.GetActiveScene().name.Equals("Level01")) GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GoToNextLevel();
+        else if (SceneManager.GetActiveScene().name.Equals("Level02")){GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GoToEndGame();};
     }
 
     private void HandleInvisibleWallCollision()
@@ -441,12 +439,12 @@ public class PlayerController : Core.Singleton.NetworkSingleton<PlayerController
         {
             for(int i = _myCurrentFloor - 1; i < _invisibleWalls.Count; i++)
             {
-                Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), _myBoxCollider, true);
+                if(_invisibleWalls[i] != null && _invisibleWalls[i].isActiveAndEnabled && _myBoxCollider != null && _myBoxCollider.enabled) Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), _myBoxCollider, true);
             }
         }else{
             for(int i = _myCurrentFloor - 1; i < _invisibleWalls.Count; i++)
             {
-                Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), _myBoxCollider, false);
+                if(_invisibleWalls[i] != null && _invisibleWalls[i].isActiveAndEnabled && _myBoxCollider != null && _myBoxCollider.enabled) Physics2D.IgnoreCollision(_invisibleWalls[i].GetComponent<BoxCollider2D>(), _myBoxCollider, false);
             }
         }
     }

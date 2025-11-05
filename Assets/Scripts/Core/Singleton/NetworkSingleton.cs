@@ -1,5 +1,4 @@
 using Unity.Netcode;
-using UnityEngine;
 
 namespace Core.Singleton
 {
@@ -14,7 +13,7 @@ namespace Core.Singleton
                 NetInstance = GetComponent<T>();
             }else
             {
-                if (NetworkManager.Singleton == null) Destroy(gameObject);
+                if (NetInstance.gameObject.CompareTag("ScoreManager") || NetworkManager.Singleton == null) Destroy(gameObject);
             }
         }
     }
